@@ -12,23 +12,33 @@ struct ContentView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 18) {
-                    hero
-                    metricGrid
-                    history
+            ZStack {
+                background
+
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 18) {
+                        header
+                        speedometerPanel
+                        metricGrid
+                        history
+                    }
+                    .padding(.horizontal, 18)
+                    .padding(.top, 14)
+                    .padding(.bottom, 28)
                 }
-                .padding(20)
             }
-            .background(background)
             .navigationTitle(L10n.text("app.title", language: language))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarColorScheme(.dark, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         showingSettings = true
                     } label: {
                         Image(systemName: "gearshape")
+                            .font(.headline)
                     }
+                    .tint(.white)
                     .accessibilityLabel(L10n.text("action.settings", language: language))
                 }
             }
@@ -44,57 +54,95 @@ struct ContentView: View {
     }
 
     private var background: some View {
-        LinearGradient(
-            colors: [
-                Color(.systemBackground),
-                Color(.secondarySystemBackground),
-                Color(.systemTeal).opacity(0.16)
-            ],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
+        ZStack {
+            Color(red: 0.035, green: 0.045, blue: 0.07)
+
+            LinearGradient(
+                colors: [
+                    Color(red: 0.0, green: 0.64, blue: 0.78).opacity(0.30),
+                    Color(red: 0.56, green: 0.20, blue: 0.76).opacity(0.16),
+                    Color.clear
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+
+            LinearGradient(
+                colors: [
+                    Color.clear,
+                    Color(red: 0.93, green: 0.45, blue: 0.18).opacity(0.10)
+                ],
+                startPoint: .center,
+                endPoint: .bottomTrailing
+            )
+        }
         .ignoresSafeArea()
     }
 
-    private var hero: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Label(viewModel.statusTitle(language: language), systemImage: "wifi")
-                        .font(.headline)
-                        .foregroundStyle(.secondary)
-                    Text(L10n.text("app.title", language: language))
-                        .font(.largeTitle.bold())
-                        .lineLimit(2)
-                        .minimumScaleFactor(0.72)
-                    Text(viewModel.progressMessage(language: language))
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                Spacer()
-                GradeBadge(result: viewModel.primaryResult(), language: language)
+    private var header: some View {
+        HStack(alignment: .center, spacing: 12) {
+            VStack(alignment: .leading, spacing: 6) {
+                Label(viewModel.statusTitle(language: language), systemImage: statusIcon)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(statusColor)
+                Text(L10n.text("app.title", language: language))
+                    .font(.system(size: 34, weight: .heavy, design: .rounded))
+                    .foregroundStyle(.white)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.72)
             }
 
-            ProgressView(value: viewModel.progressValue())
-                .tint(.teal)
+            Spacer()
+
+            GradeBadge(result: viewModel.primaryResult(), language: language)
+        }
+    }
+
+    private var speedometerPanel: some View {
+        let result = viewModel.primaryResult()
+        let speedValue = result?.downloadMbps
+        let displayValue = speedValue?.formatted(.number.precision(.fractionLength(1))) ?? "--"
+        let speedFraction = min(max((speedValue ?? 0) / 200, 0), 1)
+        let progress = viewModel.isRunning ? viewModel.progressValue() : speedFraction
+
+        return VStack(spacing: 16) {
+            SpeedometerView(
+                value: displayValue,
+                unit: L10n.text("unit.mbps", language: language),
+                caption: viewModel.progressMessage(language: language),
+                progress: progress,
+                isRunning: viewModel.isRunning
+            )
+            .frame(height: 292)
 
             Button {
                 viewModel.isRunning ? viewModel.cancel() : viewModel.start()
             } label: {
-                Label(
-                    viewModel.isRunning ? L10n.text("action.cancel", language: language) : L10n.text("action.start", language: language),
-                    systemImage: viewModel.isRunning ? "xmark.circle.fill" : "play.fill"
-                )
+                HStack(spacing: 10) {
+                    Image(systemName: viewModel.isRunning ? "xmark" : "power")
+                    Text(viewModel.isRunning ? L10n.text("action.cancel", language: language) : L10n.text("action.start", language: language))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                }
                 .font(.headline)
+                .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 14)
+                .frame(height: 54)
+                .background(startButtonBackground, in: RoundedRectangle(cornerRadius: 8))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(.white.opacity(0.14), lineWidth: 1)
+                }
             }
-            .buttonStyle(.borderedProminent)
-            .tint(viewModel.isRunning ? .red : .teal)
+            .buttonStyle(.plain)
+            .accessibilityLabel(viewModel.isRunning ? L10n.text("action.cancel", language: language) : L10n.text("action.start", language: language))
         }
         .padding(18)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
+        .background(panelBackground, in: RoundedRectangle(cornerRadius: 8))
+        .overlay {
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(.white.opacity(0.12), lineWidth: 1)
+        }
     }
 
     private var metricGrid: some View {
@@ -105,14 +153,14 @@ struct ContentView: View {
                 value: result?.downloadMbps.formatted(.number.precision(.fractionLength(1))) ?? "--",
                 unit: L10n.text("unit.mbps", language: language),
                 icon: "arrow.down.circle.fill",
-                color: .blue
+                color: .cyan
             )
             MetricCard(
                 title: L10n.text("metric.upload", language: language),
                 value: result?.uploadMbps.formatted(.number.precision(.fractionLength(1))) ?? "--",
                 unit: L10n.text("unit.mbps", language: language),
                 icon: "arrow.up.circle.fill",
-                color: .indigo
+                color: .green
             )
             MetricCard(
                 title: L10n.text("metric.latency", language: language),
@@ -135,19 +183,177 @@ struct ContentView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text(L10n.text("history.title", language: language))
                 .font(.title3.bold())
+                .foregroundStyle(.white)
 
             if viewModel.history.isEmpty {
                 Text(L10n.text("history.empty", language: language))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.white.opacity(0.62))
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding()
-                    .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 8))
+                    .background(panelBackground, in: RoundedRectangle(cornerRadius: 8))
             } else {
                 ForEach(viewModel.history) { result in
                     HistoryRow(result: result, language: language)
                 }
             }
         }
+    }
+
+    private var statusIcon: String {
+        switch viewModel.state {
+        case .idle:
+            return "wifi"
+        case .running:
+            return "dot.radiowaves.left.and.right"
+        case .completed:
+            return "checkmark.seal.fill"
+        case .failed:
+            return "exclamationmark.triangle.fill"
+        }
+    }
+
+    private var statusColor: Color {
+        switch viewModel.state {
+        case .idle:
+            return .cyan
+        case .running:
+            return .orange
+        case .completed:
+            return .green
+        case .failed:
+            return .red
+        }
+    }
+
+    private var startButtonBackground: LinearGradient {
+        LinearGradient(
+            colors: viewModel.isRunning
+                ? [Color.red, Color.orange]
+                : [Color(red: 0.0, green: 0.74, blue: 0.82), Color(red: 0.0, green: 0.44, blue: 0.95)],
+            startPoint: .leading,
+            endPoint: .trailing
+        )
+    }
+
+    private var panelBackground: LinearGradient {
+        LinearGradient(
+            colors: [
+                Color.white.opacity(0.13),
+                Color.white.opacity(0.055)
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+}
+
+private struct SpeedometerView: View {
+    let value: String
+    let unit: String
+    let caption: String
+    let progress: Double
+    let isRunning: Bool
+
+    var body: some View {
+        GeometryReader { proxy in
+            let size = min(proxy.size.width, proxy.size.height)
+            let lineWidth = max(14, size * 0.055)
+
+            ZStack {
+                GaugeTicks(progress: progress)
+                    .frame(width: size * 0.92, height: size * 0.92)
+
+                GaugeArc(progress: 1)
+                    .stroke(.white.opacity(0.10), style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
+                    .frame(width: size * 0.82, height: size * 0.82)
+
+                GaugeArc(progress: progress)
+                    .stroke(
+                        AngularGradient(
+                            colors: [.cyan, .green, .yellow, .orange, .pink],
+                            center: .center
+                        ),
+                        style: StrokeStyle(lineWidth: lineWidth, lineCap: .round)
+                    )
+                    .frame(width: size * 0.82, height: size * 0.82)
+                    .shadow(color: .cyan.opacity(isRunning ? 0.46 : 0.22), radius: isRunning ? 18 : 8)
+
+                VStack(spacing: 8) {
+                    Text(value)
+                        .font(.system(size: min(72, size * 0.23), weight: .black, design: .rounded))
+                        .monospacedDigit()
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.5)
+                    Text(unit)
+                        .font(.headline.weight(.semibold))
+                        .foregroundStyle(.white.opacity(0.62))
+                    Text(caption)
+                        .font(.footnote.weight(.medium))
+                        .foregroundStyle(.white.opacity(0.72))
+                        .multilineTextAlignment(.center)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.78)
+                        .padding(.horizontal, 18)
+                }
+                .frame(width: size * 0.64)
+                .offset(y: size * 0.04)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .animation(.spring(response: 0.7, dampingFraction: 0.82), value: progress)
+        }
+    }
+}
+
+private struct GaugeTicks: View {
+    let progress: Double
+    private let tickCount = 43
+
+    var body: some View {
+        GeometryReader { proxy in
+            let size = min(proxy.size.width, proxy.size.height)
+            let radius = size * 0.44
+            let center = CGPoint(x: proxy.size.width / 2, y: proxy.size.height / 2)
+
+            ZStack {
+                ForEach(0..<tickCount, id: \.self) { index in
+                    let fraction = Double(index) / Double(tickCount - 1)
+                    let angle = Angle.degrees(140 + 260 * fraction)
+                    let isMajor = index % 7 == 0
+                    let lit = fraction <= progress
+
+                    Capsule()
+                        .fill(lit ? Color.white.opacity(0.82) : Color.white.opacity(0.18))
+                        .frame(width: isMajor ? 3 : 2, height: isMajor ? 18 : 10)
+                        .position(
+                            x: center.x + cos(angle.radians) * radius,
+                            y: center.y + sin(angle.radians) * radius
+                        )
+                        .rotationEffect(angle + .degrees(90))
+                }
+            }
+        }
+    }
+}
+
+private struct GaugeArc: Shape {
+    var progress: Double
+
+    var animatableData: Double {
+        get { progress }
+        set { progress = newValue }
+    }
+
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        let clampedProgress = min(max(progress, 0), 1)
+        let start = Angle.degrees(140)
+        let end = Angle.degrees(140 + 260 * clampedProgress)
+        let radius = min(rect.width, rect.height) / 2
+        let center = CGPoint(x: rect.midX, y: rect.midY)
+
+        path.addArc(center: center, radius: radius, startAngle: start, endAngle: end, clockwise: false)
+        return path
     }
 }
 
@@ -160,25 +366,44 @@ private struct MetricCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Image(systemName: icon)
-                .font(.title2)
-                .foregroundStyle(color)
+            HStack {
+                Image(systemName: icon)
+                    .font(.title3)
+                    .foregroundStyle(color)
+                Spacer()
+            }
             Text(title)
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.white.opacity(0.62))
             HStack(alignment: .lastTextBaseline, spacing: 5) {
                 Text(value)
-                    .font(.system(size: 31, weight: .bold, design: .rounded))
+                    .font(.system(size: 31, weight: .heavy, design: .rounded))
+                    .foregroundStyle(.white)
+                    .monospacedDigit()
                     .lineLimit(1)
                     .minimumScaleFactor(0.58)
                 Text(unit)
                     .font(.caption.bold())
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.white.opacity(0.48))
             }
         }
         .frame(maxWidth: .infinity, minHeight: 122, alignment: .leading)
         .padding(16)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
+        .background(
+            LinearGradient(
+                colors: [
+                    color.opacity(0.22),
+                    Color.white.opacity(0.06)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            ),
+            in: RoundedRectangle(cornerRadius: 8)
+        )
+        .overlay {
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(.white.opacity(0.10), lineWidth: 1)
+        }
     }
 }
 
@@ -187,17 +412,21 @@ private struct GradeBadge: View {
     let language: AppLanguage
 
     var body: some View {
-        VStack(spacing: 4) {
+        VStack(spacing: 5) {
             Image(systemName: "gauge.with.dots.needle.67percent")
-                .font(.title2)
+                .font(.title3)
             Text(result?.grade.title(language: language) ?? "--")
                 .font(.caption.bold())
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
         }
         .foregroundStyle(.white)
-        .frame(width: 86, height: 70)
+        .frame(width: 82, height: 66)
         .background(gradeColor, in: RoundedRectangle(cornerRadius: 8))
+        .overlay {
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(.white.opacity(0.14), lineWidth: 1)
+        }
     }
 
     private var gradeColor: Color {
@@ -223,23 +452,55 @@ private struct HistoryRow: View {
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: "clock.arrow.circlepath")
-                .foregroundStyle(.teal)
+                .font(.headline)
+                .foregroundStyle(.cyan)
+                .frame(width: 30, height: 30)
+                .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 8))
             VStack(alignment: .leading, spacing: 4) {
                 Text(result.measuredAt, style: .time)
                     .font(.headline)
+                    .foregroundStyle(.white)
                 Text("\(L10n.text("metric.download", language: language)) \(result.downloadMbps.formatted(.number.precision(.fractionLength(1)))) \(L10n.text("unit.mbps", language: language))")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.white.opacity(0.58))
             }
             Spacer()
             Text(result.grade.title(language: language))
                 .font(.caption.bold())
+                .foregroundStyle(.white)
                 .padding(.horizontal, 9)
                 .padding(.vertical, 5)
-                .background(.thinMaterial, in: Capsule())
+                .background(gradeColor.opacity(0.78), in: Capsule())
         }
         .padding()
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
+        .background(
+            LinearGradient(
+                colors: [
+                    Color.white.opacity(0.12),
+                    Color.white.opacity(0.05)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            ),
+            in: RoundedRectangle(cornerRadius: 8)
+        )
+        .overlay {
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(.white.opacity(0.10), lineWidth: 1)
+        }
+    }
+
+    private var gradeColor: Color {
+        switch result.grade {
+        case .excellent:
+            return .green
+        case .good:
+            return .cyan
+        case .fair:
+            return .orange
+        case .poor:
+            return .red
+        }
     }
 }
 
