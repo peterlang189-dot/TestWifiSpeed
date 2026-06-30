@@ -1,0 +1,17 @@
+"app.title" = "Test WiFi Speed";
+"app.subtitle" = "Measure latency, download, upload, and jitter.";
+"action.start" = "Start test";
+"action.cancel" = "Cancel";
+"action.settings" = "Settings";
+"action.done" = "Done";
+"status.ready" = "Ready";
+"status.running" = "Testing";
+"status.finished" = "Completed";
+"status.failed" = "Test failed";
+"metric.download" = "Download";
+"metric.upload" = "Upload";
+"metric.latency" = "Latency";
+"metric.jitter" = "Jitter";
+"metric.grade" = "Quality";
+"unit.mbps" = "Mbps";
+"unit.ms" = "ms";

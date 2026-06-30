@@ -1,0 +1,17 @@
+"app.title" = "WiFi 网络测试";
+"app.subtitle" = "测试延迟、下载、上传和抖动。";
+"action.start" = "开始测试";
+"action.cancel" = "取消";
+"action.settings" = "设置";
+"action.done" = "完成";
+"status.ready" = "准备就绪";
+"status.running" = "测试中";
+"status.finished" = "已完成";
+"status.failed" = "测试失败";
+"metric.download" = "下载";
+"metric.upload" = "上传";
+"metric.latency" = "延迟";
+"metric.jitter" = "抖动";
+"metric.grade" = "质量";
+"unit.mbps" = "Mbps";
+"unit.ms" = "毫秒";
