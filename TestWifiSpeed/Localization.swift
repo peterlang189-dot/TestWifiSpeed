@@ -47,6 +47,39 @@ enum L10n {
         "action.cancel": [.english: "Cancel", .simplifiedChinese: "取消"],
         "action.settings": [.english: "Settings", .simplifiedChinese: "设置"],
         "action.done": [.english: "Done", .simplifiedChinese: "完成"],
+        "smart.title": [.english: "Smart Wi-Fi", .simplifiedChinese: "智能 Wi-Fi"],
+        "smart.entry.subtitle": [.english: "Find whether a faster, lower-latency Wi-Fi is worth choosing.", .simplifiedChinese: "自动评估是否应选择更快、延迟更低的 Wi-Fi。"],
+        "smart.badge": [.english: "Automatic recommendation", .simplifiedChinese: "自动优选建议"],
+        "smart.hero.title": [.english: "Choose the better connection", .simplifiedChinese: "选择更优网络连接"],
+        "smart.hero.body": [
+            .english: "Run a focused speed and latency check. The app scores the current connection and tells you when switching Wi-Fi should improve the experience.",
+            .simplifiedChinese: "运行一次速度和延迟检测，App 会评估当前连接，并在切换 Wi-Fi 可能更流畅时给出建议。"
+        ],
+        "smart.ready": [.english: "Ready to optimize", .simplifiedChinese: "准备开始优选"],
+        "smart.scanning": [.english: "Checking Wi-Fi quality", .simplifiedChinese: "正在检测 Wi-Fi 质量"],
+        "smart.idle.detail": [.english: "Tap optimize to measure the active connection.", .simplifiedChinese: "点击开始优选，检测当前连接表现。"],
+        "smart.running.detail": [.english: "Measuring download speed, upload speed, latency, and jitter.", .simplifiedChinese: "正在检测下载、上传、延迟和抖动。"],
+        "smart.action.optimize": [.english: "Auto optimize Wi-Fi", .simplifiedChinese: "自动优选 Wi-Fi"],
+        "smart.action.settings": [.english: "Open Settings", .simplifiedChinese: "打开系统设置"],
+        "smart.system.note": [
+            .english: "iOS requires user confirmation before changing Wi-Fi. This screen recommends the best action without using private Wi-Fi scanning APIs.",
+            .simplifiedChinese: "iOS 要求用户确认后才能更换 Wi-Fi。本页提供优选建议，不使用私有扫网或静默切网 API。"
+        ],
+        "smart.recommend.keep": [.english: "Current Wi-Fi is strong", .simplifiedChinese: "当前 Wi-Fi 表现良好"],
+        "smart.recommend.switchSoon": [.english: "A better Wi-Fi may help", .simplifiedChinese: "可尝试切换更优 Wi-Fi"],
+        "smart.recommend.switchNow": [.english: "Switch Wi-Fi recommended", .simplifiedChinese: "建议切换 Wi-Fi"],
+        "smart.detail.keep": [
+            .english: "Speed and latency are already good. Staying on this Wi-Fi is recommended.",
+            .simplifiedChinese: "当前速度和延迟表现较好，建议继续使用这个 Wi-Fi。"
+        ],
+        "smart.detail.switchSoon": [
+            .english: "This connection is usable, but a stronger nearby Wi-Fi may reduce buffering and lag.",
+            .simplifiedChinese: "当前连接可用，但切换到信号更强的 Wi-Fi 可能降低卡顿和延迟。"
+        ],
+        "smart.detail.switchNow": [
+            .english: "The current connection is slow or unstable. Choose a faster, lower-latency Wi-Fi in Settings.",
+            .simplifiedChinese: "当前连接较慢或不稳定，请在系统设置中选择速度更快、延迟更低的 Wi-Fi。"
+        ],
         "status.ready": [.english: "Ready", .simplifiedChinese: "准备就绪"],
         "status.running": [.english: "Testing", .simplifiedChinese: "测试中"],
         "status.finished": [.english: "Completed", .simplifiedChinese: "已完成"],

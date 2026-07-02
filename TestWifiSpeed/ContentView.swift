@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct ContentView: View {
     @AppStorage("appLanguage") private var languageCode = AppLanguage.english.rawValue
@@ -19,6 +20,7 @@ struct ContentView: View {
                     VStack(spacing: 18) {
                         header
                         speedometerPanel
+                        smartWiFiEntry
                         metricGrid
                         history
                     }
@@ -179,6 +181,54 @@ struct ContentView: View {
         }
     }
 
+    private var smartWiFiEntry: some View {
+        NavigationLink {
+            SmartWiFiView(language: language)
+        } label: {
+            HStack(spacing: 14) {
+                Image(systemName: "sparkles")
+                    .font(.title3)
+                    .foregroundStyle(.black)
+                    .frame(width: 42, height: 42)
+                    .background(.white, in: RoundedRectangle(cornerRadius: 8))
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(L10n.text("smart.title", language: language))
+                        .font(.headline)
+                        .foregroundStyle(.white)
+                    Text(L10n.text("smart.entry.subtitle", language: language))
+                        .font(.caption)
+                        .foregroundStyle(.white.opacity(0.62))
+                        .lineLimit(2)
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.subheadline.weight(.bold))
+                    .foregroundStyle(.white.opacity(0.54))
+            }
+            .padding(16)
+            .background(
+                LinearGradient(
+                    colors: [
+                        Color.green.opacity(0.26),
+                        Color.cyan.opacity(0.16),
+                        Color.white.opacity(0.055)
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                ),
+                in: RoundedRectangle(cornerRadius: 8)
+            )
+            .overlay {
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(.white.opacity(0.12), lineWidth: 1)
+            }
+        }
+        .buttonStyle(.plain)
+    }
+
     private var history: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(L10n.text("history.title", language: language))
@@ -236,6 +286,350 @@ struct ContentView: View {
     }
 
     private var panelBackground: LinearGradient {
+        LinearGradient(
+            colors: [
+                Color.white.opacity(0.13),
+                Color.white.opacity(0.055)
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+}
+
+@MainActor
+private final class SmartWiFiAdvisor: ObservableObject {
+    enum State {
+        case idle
+        case running(SpeedTestProgress?)
+        case completed(SpeedTestResult, SmartWiFiRecommendation)
+        case failed(String)
+    }
+
+    @Published private(set) var state: State = .idle
+
+    private let runner = SpeedTestRunner()
+    private var task: Task<Void, Never>?
+
+    var isRunning: Bool {
+        if case .running = state { return true }
+        return false
+    }
+
+    func start() {
+        guard !isRunning else { return }
+        state = .running(nil)
+        task = Task {
+            do {
+                let result = try await runner.run { [weak self] progress in
+                    self?.state = .running(progress)
+                }
+                state = .completed(result, SmartWiFiRecommendation(result: result))
+            } catch is CancellationError {
+                state = .idle
+            } catch {
+                state = .failed(error.localizedDescription)
+            }
+        }
+    }
+
+    func cancel() {
+        task?.cancel()
+        task = nil
+        state = .idle
+    }
+
+    func progressValue() -> Double {
+        switch state {
+        case .running(let progress):
+            return progress?.fraction ?? 0.05
+        case .completed:
+            return 1
+        default:
+            return 0
+        }
+    }
+
+    func statusText(language: AppLanguage) -> String {
+        switch state {
+        case .idle:
+            return L10n.text("smart.ready", language: language)
+        case .running(let progress):
+            return L10n.text(progress?.messageKey ?? "smart.scanning", language: language)
+        case .completed(_, let recommendation):
+            return recommendation.title(language: language)
+        case .failed(let message):
+            return message.isEmpty ? L10n.text("error.generic", language: language) : message
+        }
+    }
+}
+
+private enum SmartWiFiRecommendation {
+    case keep
+    case switchSoon
+    case switchNow
+
+    init(result: SpeedTestResult) {
+        if result.downloadMbps >= 50, result.uploadMbps >= 15, result.latencyMs <= 70, result.jitterMs <= 25 {
+            self = .keep
+        } else if result.downloadMbps >= 15, result.uploadMbps >= 5, result.latencyMs <= 120 {
+            self = .switchSoon
+        } else {
+            self = .switchNow
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .keep:
+            return "checkmark.seal.fill"
+        case .switchSoon:
+            return "arrow.triangle.2.circlepath"
+        case .switchNow:
+            return "exclamationmark.triangle.fill"
+        }
+    }
+
+    var color: Color {
+        switch self {
+        case .keep:
+            return .green
+        case .switchSoon:
+            return .orange
+        case .switchNow:
+            return .red
+        }
+    }
+
+    func title(language: AppLanguage) -> String {
+        switch self {
+        case .keep:
+            return L10n.text("smart.recommend.keep", language: language)
+        case .switchSoon:
+            return L10n.text("smart.recommend.switchSoon", language: language)
+        case .switchNow:
+            return L10n.text("smart.recommend.switchNow", language: language)
+        }
+    }
+
+    func detail(language: AppLanguage) -> String {
+        switch self {
+        case .keep:
+            return L10n.text("smart.detail.keep", language: language)
+        case .switchSoon:
+            return L10n.text("smart.detail.switchSoon", language: language)
+        case .switchNow:
+            return L10n.text("smart.detail.switchNow", language: language)
+        }
+    }
+}
+
+private struct SmartWiFiView: View {
+    let language: AppLanguage
+
+    @StateObject private var advisor = SmartWiFiAdvisor()
+    @Environment(\.openURL) private var openURL
+
+    var body: some View {
+        ZStack {
+            SmartWiFiBackground()
+
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 18) {
+                    hero
+                    recommendationPanel
+                    metricsPanel
+                    actionPanel
+                }
+                .padding(.horizontal, 18)
+                .padding(.top, 14)
+                .padding(.bottom, 28)
+            }
+        }
+        .navigationTitle(L10n.text("smart.title", language: language))
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarColorScheme(.dark, for: .navigationBar)
+    }
+
+    private var hero: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label(L10n.text("smart.badge", language: language), systemImage: "wifi.router.fill")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.cyan)
+            Text(L10n.text("smart.hero.title", language: language))
+                .font(.system(size: 30, weight: .heavy, design: .rounded))
+                .foregroundStyle(.white)
+                .lineLimit(2)
+                .minimumScaleFactor(0.74)
+            Text(L10n.text("smart.hero.body", language: language))
+                .font(.subheadline)
+                .foregroundStyle(.white.opacity(0.64))
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var recommendationPanel: some View {
+        let display = displayState
+
+        return VStack(spacing: 16) {
+            ZStack {
+                Circle()
+                    .fill(display.color.opacity(0.16))
+                    .frame(width: 126, height: 126)
+                Circle()
+                    .stroke(display.color.opacity(0.42), lineWidth: 10)
+                    .frame(width: 126, height: 126)
+                Image(systemName: display.icon)
+                    .font(.system(size: 42, weight: .bold))
+                    .foregroundStyle(display.color)
+            }
+
+            VStack(spacing: 8) {
+                Text(advisor.statusText(language: language))
+                    .font(.title3.weight(.heavy))
+                    .foregroundStyle(.white)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.75)
+                Text(display.detail)
+                    .font(.subheadline)
+                    .foregroundStyle(.white.opacity(0.66))
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            ProgressView(value: advisor.progressValue())
+                .tint(display.color)
+        }
+        .padding(18)
+        .frame(maxWidth: .infinity)
+        .background {
+            SmartPanelBackground()
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+        }
+        .overlay {
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(.white.opacity(0.12), lineWidth: 1)
+        }
+    }
+
+    @ViewBuilder
+    private var metricsPanel: some View {
+        if case .completed(let result, _) = advisor.state {
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 12)], spacing: 12) {
+                MetricCard(
+                    title: L10n.text("metric.download", language: language),
+                    value: result.downloadMbps.formatted(.number.precision(.fractionLength(1))),
+                    unit: L10n.text("unit.mbps", language: language),
+                    icon: "arrow.down.circle.fill",
+                    color: .cyan
+                )
+                MetricCard(
+                    title: L10n.text("metric.latency", language: language),
+                    value: result.latencyMs.formatted(.number.precision(.fractionLength(0))),
+                    unit: L10n.text("unit.ms", language: language),
+                    icon: "timer",
+                    color: .orange
+                )
+            }
+        }
+    }
+
+    private var actionPanel: some View {
+        VStack(spacing: 12) {
+            Button {
+                advisor.isRunning ? advisor.cancel() : advisor.start()
+            } label: {
+                HStack(spacing: 10) {
+                    Image(systemName: advisor.isRunning ? "xmark" : "wand.and.stars")
+                    Text(advisor.isRunning ? L10n.text("action.cancel", language: language) : L10n.text("smart.action.optimize", language: language))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.78)
+                }
+                .font(.headline)
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity)
+                .frame(height: 54)
+                .background(actionGradient, in: RoundedRectangle(cornerRadius: 8))
+            }
+            .buttonStyle(.plain)
+
+            Button {
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    openURL(url)
+                }
+            } label: {
+                Label(L10n.text("smart.action.settings", language: language), systemImage: "gearshape.fill")
+                    .font(.headline)
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 50)
+                    .background(.white.opacity(0.10), in: RoundedRectangle(cornerRadius: 8))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(.white.opacity(0.12), lineWidth: 1)
+                    }
+            }
+            .buttonStyle(.plain)
+
+            Text(L10n.text("smart.system.note", language: language))
+                .font(.caption)
+                .foregroundStyle(.white.opacity(0.54))
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(16)
+        .background {
+            SmartPanelBackground()
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+        }
+    }
+
+    private var displayState: (icon: String, color: Color, detail: String) {
+        switch advisor.state {
+        case .idle:
+            return ("sparkles", .cyan, L10n.text("smart.idle.detail", language: language))
+        case .running:
+            return ("antenna.radiowaves.left.and.right", .orange, L10n.text("smart.running.detail", language: language))
+        case .completed(_, let recommendation):
+            return (recommendation.icon, recommendation.color, recommendation.detail(language: language))
+        case .failed:
+            return ("exclamationmark.triangle.fill", .red, L10n.text("error.generic", language: language))
+        }
+    }
+
+    private var actionGradient: LinearGradient {
+        LinearGradient(
+            colors: advisor.isRunning
+                ? [Color.red, Color.orange]
+                : [Color.green, Color.cyan],
+            startPoint: .leading,
+            endPoint: .trailing
+        )
+    }
+}
+
+private struct SmartWiFiBackground: View {
+    var body: some View {
+        ZStack {
+            Color(red: 0.035, green: 0.045, blue: 0.07)
+            LinearGradient(
+                colors: [
+                    Color.green.opacity(0.24),
+                    Color.cyan.opacity(0.18),
+                    Color.clear
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        }
+        .ignoresSafeArea()
+    }
+}
+
+private struct SmartPanelBackground: View {
+    var body: some View {
         LinearGradient(
             colors: [
                 Color.white.opacity(0.13),
