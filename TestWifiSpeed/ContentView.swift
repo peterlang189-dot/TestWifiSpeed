@@ -956,6 +956,8 @@ private struct SettingsView: View {
     }
 }
 
+#if DEBUG
 #Preview {
     ContentView()
 }
+#endif
