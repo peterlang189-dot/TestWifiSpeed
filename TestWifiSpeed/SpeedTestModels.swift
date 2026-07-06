@@ -1,5 +1,37 @@
 import Foundation
 
+// MARK: - Speed Test Thresholds
+
+enum SpeedTestThreshold {
+    /// Maximum Mbps displayed on the speedometer (used to normalize the gauge).
+    static let speedometerMaxMbps: Double = 200
+
+    /// Maximum number of history entries kept locally.
+    static let maxHistoryCount = 8
+
+    /// Grade thresholds.
+    static let excellentDownload: Double = 100
+    static let excellentUpload: Double = 30
+    static let excellentLatency: Double = 35
+    static let goodDownload: Double = 50
+    static let goodUpload: Double = 15
+    static let goodLatency: Double = 70
+    static let fairDownload: Double = 15
+    static let fairUpload: Double = 5
+    static let fairLatency: Double = 120
+
+    /// Smart Wi-Fi recommendation thresholds.
+    static let smartKeepDownload: Double = 50
+    static let smartKeepUpload: Double = 15
+    static let smartKeepLatency: Double = 70
+    static let smartKeepJitter: Double = 25
+    static let smartSwitchDownload: Double = 15
+    static let smartSwitchUpload: Double = 5
+    static let smartSwitchLatency: Double = 120
+}
+
+// MARK: - Stage & Grade
+
 enum SpeedTestStage: String, CaseIterable, Identifiable {
     case idle
     case latency
@@ -10,7 +42,7 @@ enum SpeedTestStage: String, CaseIterable, Identifiable {
     var id: String { rawValue }
 }
 
-enum NetworkGrade: String, CaseIterable {
+enum NetworkGrade: String, CaseIterable, Codable {
     case excellent
     case good
     case fair
@@ -32,8 +64,8 @@ struct SpeedTestProgress: Equatable {
     let messageKey: String
 }
 
-struct SpeedTestResult: Identifiable, Equatable {
-    let id = UUID()
+struct SpeedTestResult: Identifiable, Equatable, Codable {
+    var id = UUID()
     let measuredAt: Date
     let latencyMs: Double
     let jitterMs: Double
@@ -76,13 +108,19 @@ enum SpeedMath {
     }
 
     static func grade(downloadMbps: Double, uploadMbps: Double, latencyMs: Double) -> NetworkGrade {
-        if downloadMbps >= 100, uploadMbps >= 30, latencyMs <= 35 {
+        if downloadMbps >= SpeedTestThreshold.excellentDownload,
+           uploadMbps >= SpeedTestThreshold.excellentUpload,
+           latencyMs <= SpeedTestThreshold.excellentLatency {
             return .excellent
         }
-        if downloadMbps >= 50, uploadMbps >= 15, latencyMs <= 70 {
+        if downloadMbps >= SpeedTestThreshold.goodDownload,
+           uploadMbps >= SpeedTestThreshold.goodUpload,
+           latencyMs <= SpeedTestThreshold.goodLatency {
             return .good
         }
-        if downloadMbps >= 15, uploadMbps >= 5, latencyMs <= 120 {
+        if downloadMbps >= SpeedTestThreshold.fairDownload,
+           uploadMbps >= SpeedTestThreshold.fairUpload,
+           latencyMs <= SpeedTestThreshold.fairLatency {
             return .fair
         }
         return .poor

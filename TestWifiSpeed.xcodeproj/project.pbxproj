@@ -17,6 +17,14 @@
 		100000000000000000000008 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000110 /* Localizable.strings */; };
 		100000000000000000000009 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000108 /* PrivacyInfo.xcprivacy */; };
 		10000000000000000000000A /* SpeedTestRunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000201 /* SpeedTestRunnerTests.swift */; };
+		10000000000000000000000B /* SpeedometerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000113 /* SpeedometerView.swift */; };
+		10000000000000000000000C /* MetricCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000114 /* MetricCard.swift */; };
+		10000000000000000000000D /* GradeBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000115 /* GradeBadge.swift */; };
+		10000000000000000000000E /* HistoryRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000116 /* HistoryRow.swift */; };
+		10000000000000000000000F /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000117 /* SettingsView.swift */; };
+		100000000000000000000010 /* SmartWiFiView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000118 /* SmartWiFiView.swift */; };
+		100000000000000000000011 /* SmartWiFiAdvisor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000119 /* SmartWiFiAdvisor.swift */; };
+		100000000000000000000012 /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000011A /* NetworkMonitor.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -41,6 +49,14 @@
 		100000000000000000000109 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		100000000000000000000111 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		100000000000000000000112 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		100000000000000000000113 /* SpeedometerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeedometerView.swift; sourceTree = "<group>"; };
+		100000000000000000000114 /* MetricCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricCard.swift; sourceTree = "<group>"; };
+		100000000000000000000115 /* GradeBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradeBadge.swift; sourceTree = "<group>"; };
+		100000000000000000000116 /* HistoryRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryRow.swift; sourceTree = "<group>"; };
+		100000000000000000000117 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		100000000000000000000118 /* SmartWiFiView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartWiFiView.swift; sourceTree = "<group>"; };
+		100000000000000000000119 /* SmartWiFiAdvisor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartWiFiAdvisor.swift; sourceTree = "<group>"; };
+		10000000000000000000011A /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
 		100000000000000000000201 /* SpeedTestRunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeedTestRunnerTests.swift; sourceTree = "<group>"; };
 		100000000000000000000202 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		100000000000000000000601 /* TestWifiSpeed.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TestWifiSpeed.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -83,6 +99,8 @@
 				100000000000000000000104 /* SpeedTestModels.swift */,
 				100000000000000000000105 /* SpeedTestRunner.swift */,
 				100000000000000000000106 /* SpeedTestViewModel.swift */,
+				100000000000000000000804 /* Views */,
+				100000000000000000000805 /* Services */,
 				100000000000000000000107 /* Assets.xcassets */,
 				100000000000000000000110 /* Localizable.strings */,
 				100000000000000000000108 /* PrivacyInfo.xcprivacy */,
@@ -107,6 +125,28 @@
 				100000000000000000000602 /* TestWifiSpeedTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		100000000000000000000804 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				100000000000000000000113 /* SpeedometerView.swift */,
+				100000000000000000000114 /* MetricCard.swift */,
+				100000000000000000000115 /* GradeBadge.swift */,
+				100000000000000000000116 /* HistoryRow.swift */,
+				100000000000000000000117 /* SettingsView.swift */,
+				100000000000000000000118 /* SmartWiFiView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		100000000000000000000805 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				100000000000000000000119 /* SmartWiFiAdvisor.swift */,
+				10000000000000000000011A /* NetworkMonitor.swift */,
+			);
+			path = Services;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -216,6 +256,14 @@
 				100000000000000000000004 /* SpeedTestModels.swift in Sources */,
 				100000000000000000000005 /* SpeedTestRunner.swift in Sources */,
 				100000000000000000000006 /* SpeedTestViewModel.swift in Sources */,
+				10000000000000000000000B /* SpeedometerView.swift in Sources */,
+				10000000000000000000000C /* MetricCard.swift in Sources */,
+				10000000000000000000000D /* GradeBadge.swift in Sources */,
+				10000000000000000000000E /* HistoryRow.swift in Sources */,
+				10000000000000000000000F /* SettingsView.swift in Sources */,
+				100000000000000000000010 /* SmartWiFiView.swift in Sources */,
+				100000000000000000000011 /* SmartWiFiAdvisor.swift in Sources */,
+				100000000000000000000012 /* NetworkMonitor.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -1,3 +1,4 @@
+import Combine
 import Foundation
 
 @MainActor
@@ -11,13 +12,54 @@ final class SpeedTestViewModel: ObservableObject {
 
     @Published private(set) var state: State = .idle
     @Published private(set) var history: [SpeedTestResult] = []
+    @Published private(set) var isNetworkAvailable = true
 
     private let runner: SpeedTestRunner
+    private let monitor: NetworkMonitor
     private var task: Task<Void, Never>?
+    private var cancellables = Set<AnyCancellable>()
 
-    init(runner: SpeedTestRunner = SpeedTestRunner()) {
+    private static let historyKey = "SpeedTestHistory"
+
+    init(runner: SpeedTestRunner = SpeedTestRunner(), monitor: NetworkMonitor = NetworkMonitor()) {
         self.runner = runner
+        self.monitor = monitor
+        loadHistory()
+        observeNetwork()
     }
+
+    // MARK: - Network Observation
+
+    private func observeNetwork() {
+        monitor.$isConnected
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] connected in
+                self?.isNetworkAvailable = connected
+            }
+            .store(in: &cancellables)
+    }
+
+    // MARK: - Persistence
+
+    private func loadHistory() {
+        guard let data = UserDefaults.standard.data(forKey: Self.historyKey) else { return }
+        do {
+            history = try JSONDecoder().decode([SpeedTestResult].self, from: data)
+        } catch {
+            history = []
+        }
+    }
+
+    private func saveHistory() {
+        do {
+            let data = try JSONEncoder().encode(history)
+            UserDefaults.standard.set(data, forKey: Self.historyKey)
+        } catch {
+            // Non-critical: history will be saved on next successful test.
+        }
+    }
+
+    // MARK: - Actions
 
     var isRunning: Bool {
         if case .running = state { return true }
@@ -32,7 +74,8 @@ final class SpeedTestViewModel: ObservableObject {
                     self?.state = .running(progress)
                 }
                 history.insert(result, at: 0)
-                history = Array(history.prefix(8))
+                history = Array(history.prefix(SpeedTestThreshold.maxHistoryCount))
+                saveHistory()
                 state = .completed(result)
             } catch is CancellationError {
                 state = .idle
@@ -47,6 +90,8 @@ final class SpeedTestViewModel: ObservableObject {
         task = nil
         state = .idle
     }
+
+    // MARK: - Queries
 
     func primaryResult() -> SpeedTestResult? {
         switch state {

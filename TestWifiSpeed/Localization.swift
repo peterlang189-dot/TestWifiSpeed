@@ -117,7 +117,8 @@ enum L10n {
         "grade.good": [.english: "Good", .simplifiedChinese: "良好"],
         "grade.fair": [.english: "Fair", .simplifiedChinese: "一般"],
         "grade.poor": [.english: "Poor", .simplifiedChinese: "较差"],
-        "error.generic": [.english: "Please check your connection and try again.", .simplifiedChinese: "请检查网络连接后重试。"]
+        "error.generic": [.english: "Please check your connection and try again.", .simplifiedChinese: "请检查网络连接后重试。"],
+        "network.offline": [.english: "No network connection available.", .simplifiedChinese: "当前无网络连接。"],
     ]
 }
 
