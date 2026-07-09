@@ -45,9 +45,68 @@ final class SpeedTestRunnerTests: XCTestCase {
         XCTAssertEqual(progressEvents.last?.stage, .complete)
     }
 
+    func testRunnerRejectsInvalidConfiguration() async {
+        let configuration = SpeedTestConfiguration(
+            latencyURL: URL(string: "https://example.com/latency")!,
+            downloadURL: URL(string: "https://example.com/download")!,
+            uploadURL: URL(string: "https://example.com/upload")!,
+            latencySampleCount: 0,
+            uploadBytes: 4_000_000
+        )
+        let runner = SpeedTestRunner(configuration: configuration, client: MockTransferClient(measurements: []))
+
+        do {
+            _ = try await runner.run { _ in }
+            XCTFail("Expected invalid configuration to throw")
+        } catch let error as SpeedTestError {
+            XCTAssertEqual(error, .invalidConfiguration)
+        } catch {
+            XCTFail("Expected SpeedTestError.invalidConfiguration, got \(error)")
+        }
+    }
+
+    func testRunnerHonorsCancellationAfterClientReturns() async throws {
+        let configuration = SpeedTestConfiguration(
+            latencyURL: URL(string: "https://example.com/latency")!,
+            downloadURL: URL(string: "https://example.com/download")!,
+            uploadURL: URL(string: "https://example.com/upload")!,
+            latencySampleCount: 1,
+            uploadBytes: 4_000_000
+        )
+        let client = CancellationIgnoringClient(measurement: TransferMeasurement(bytes: 12, duration: 0.020))
+        let runner = SpeedTestRunner(configuration: configuration, client: client)
+
+        let task = Task {
+            try await runner.run { _ in }
+        }
+        task.cancel()
+
+        do {
+            _ = try await task.value
+            XCTFail("Expected cancellation to throw")
+        } catch is CancellationError {
+            XCTAssertTrue(true)
+        } catch {
+            XCTFail("Expected CancellationError, got \(error)")
+        }
+    }
+
     func testDefaultLanguageIsEnglish() {
         XCTAssertEqual(AppLanguage.english.rawValue, "en")
         XCTAssertEqual(L10n.text("action.start", language: .english), "Start test")
+    }
+}
+
+private actor CancellationIgnoringClient: TransferClient {
+    let measurement: TransferMeasurement
+
+    init(measurement: TransferMeasurement) {
+        self.measurement = measurement
+    }
+
+    func perform(_ request: URLRequest, expectedUploadBytes: Int?) async throws -> TransferMeasurement {
+        try? await Task.sleep(nanoseconds: 10_000_000)
+        return measurement
     }
 }
 

@@ -82,6 +82,7 @@ final class SmartWiFiAdvisor: ObservableObject {
 
     private let runner: SpeedTestRunner
     private var task: Task<Void, Never>?
+    private var activeRunID: UUID?
 
     init(runner: SpeedTestRunner = SpeedTestRunner()) {
         self.runner = runner
@@ -94,22 +95,37 @@ final class SmartWiFiAdvisor: ObservableObject {
 
     func start() {
         guard !isRunning else { return }
+        let runID = UUID()
+        activeRunID = runID
         state = .running(nil)
+
         task = Task {
             do {
                 let result = try await runner.run { [weak self] progress in
+                    guard self?.activeRunID == runID else { return }
                     self?.state = .running(progress)
                 }
+                try Task.checkCancellation()
+                guard activeRunID == runID else { return }
                 state = .completed(result, SmartWiFiRecommendation(result: result))
+                activeRunID = nil
+                task = nil
             } catch is CancellationError {
+                guard activeRunID == runID else { return }
                 state = .idle
+                activeRunID = nil
+                task = nil
             } catch {
+                guard activeRunID == runID else { return }
                 state = .failed(error.localizedDescription)
+                activeRunID = nil
+                task = nil
             }
         }
     }
 
     func cancel() {
+        activeRunID = nil
         task?.cancel()
         task = nil
         state = .idle

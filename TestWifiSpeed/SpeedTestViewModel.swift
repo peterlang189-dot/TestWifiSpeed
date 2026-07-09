@@ -17,6 +17,7 @@ final class SpeedTestViewModel: ObservableObject {
     private let runner: SpeedTestRunner
     private let monitor: NetworkMonitor
     private var task: Task<Void, Never>?
+    private var activeRunID: UUID?
     private var cancellables = Set<AnyCancellable>()
 
     private static let historyKey = "SpeedTestHistory"
@@ -68,24 +69,40 @@ final class SpeedTestViewModel: ObservableObject {
 
     func start() {
         guard !isRunning else { return }
+        let runID = UUID()
+        activeRunID = runID
+        state = .running(SpeedTestProgress(stage: .latency, fraction: 0.05, messageKey: "progress.latency"))
+
         task = Task {
             do {
                 let result = try await runner.run { [weak self] progress in
+                    guard self?.activeRunID == runID else { return }
                     self?.state = .running(progress)
                 }
+                try Task.checkCancellation()
+                guard activeRunID == runID else { return }
                 history.insert(result, at: 0)
                 history = Array(history.prefix(SpeedTestThreshold.maxHistoryCount))
                 saveHistory()
                 state = .completed(result)
+                activeRunID = nil
+                task = nil
             } catch is CancellationError {
+                guard activeRunID == runID else { return }
                 state = .idle
+                activeRunID = nil
+                task = nil
             } catch {
+                guard activeRunID == runID else { return }
                 state = .failed(error.localizedDescription)
+                activeRunID = nil
+                task = nil
             }
         }
     }
 
     func cancel() {
+        activeRunID = nil
         task?.cancel()
         task = nil
         state = .idle

@@ -60,10 +60,9 @@ enum L10n {
         "smart.idle.detail": [.english: "Tap optimize to measure the active connection.", .simplifiedChinese: "点击开始优选，检测当前连接表现。"],
         "smart.running.detail": [.english: "Measuring download speed, upload speed, latency, and jitter.", .simplifiedChinese: "正在检测下载、上传、延迟和抖动。"],
         "smart.action.optimize": [.english: "Auto optimize Wi-Fi", .simplifiedChinese: "自动优选 Wi-Fi"],
-        "smart.action.settings": [.english: "Open Settings", .simplifiedChinese: "打开系统设置"],
         "smart.system.note": [
-            .english: "iOS requires user confirmation before changing Wi-Fi. This screen recommends the best action without using private Wi-Fi scanning APIs.",
-            .simplifiedChinese: "iOS 要求用户确认后才能更换 Wi-Fi。本页提供优选建议，不使用私有扫网或静默切网 API。"
+            .english: "iOS requires changing Wi-Fi manually in the Settings app. This screen only recommends the best action and does not use private Wi-Fi scanning APIs.",
+            .simplifiedChinese: "iOS 要求用户在系统设置中手动更换 Wi-Fi。本页只提供优选建议，不使用私有扫网或静默切网 API。"
         ],
         "smart.recommend.keep": [.english: "Current Wi-Fi is strong", .simplifiedChinese: "当前 Wi-Fi 表现良好"],
         "smart.recommend.switchSoon": [.english: "A better Wi-Fi may help", .simplifiedChinese: "可尝试切换更优 Wi-Fi"],

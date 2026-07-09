@@ -24,12 +24,15 @@ struct URLSessionTransferClient: TransferClient {
 
 enum SpeedTestError: LocalizedError, Equatable {
     case badStatusCode(Int)
+    case invalidConfiguration
     case noSamples
 
     var errorDescription: String? {
         switch self {
         case .badStatusCode(let code):
             return "Unexpected server response: \(code)"
+        case .invalidConfiguration:
+            return "Speed test configuration is invalid."
         case .noSamples:
             return "Unable to collect network samples."
         }
@@ -49,6 +52,10 @@ struct SpeedTestRunner {
     }
 
     func run(progress: @escaping @MainActor (SpeedTestProgress) -> Void) async throws -> SpeedTestResult {
+        guard configuration.latencySampleCount > 0, configuration.uploadBytes > 0 else {
+            throw SpeedTestError.invalidConfiguration
+        }
+
         await progress(SpeedTestProgress(stage: .latency, fraction: 0.1, messageKey: "progress.latency"))
 
         var latencySamples: [Double] = []
@@ -60,6 +67,7 @@ struct SpeedTestRunner {
             request.httpMethod = "GET"
 
             let measurement = try await client.perform(request, expectedUploadBytes: nil)
+            try Task.checkCancellation()
             latencySamples.append(measurement.duration * 1_000)
 
             let fraction = 0.1 + (Double(index + 1) / Double(configuration.latencySampleCount)) * 0.25
@@ -77,6 +85,7 @@ struct SpeedTestRunner {
         downloadRequest.timeoutInterval = 30
         downloadRequest.httpMethod = "GET"
         let download = try await client.perform(downloadRequest, expectedUploadBytes: nil)
+        try Task.checkCancellation()
 
         try Task.checkCancellation()
         await progress(SpeedTestProgress(stage: .upload, fraction: 0.75, messageKey: "progress.upload"))
@@ -87,6 +96,7 @@ struct SpeedTestRunner {
         uploadRequest.setValue("application/octet-stream", forHTTPHeaderField: "Content-Type")
         uploadRequest.httpBody = Data(repeating: 0x5A, count: configuration.uploadBytes)
         let upload = try await client.perform(uploadRequest, expectedUploadBytes: configuration.uploadBytes)
+        try Task.checkCancellation()
 
         let latency = SpeedMath.average(latencySamples)
         let jitter = SpeedMath.jitter(from: latencySamples)

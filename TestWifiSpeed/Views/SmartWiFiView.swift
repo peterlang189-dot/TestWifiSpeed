@@ -4,7 +4,6 @@ struct SmartWiFiView: View {
     let language: AppLanguage
 
     @StateObject private var advisor = SmartWiFiAdvisor()
-    @Environment(\.openURL) private var openURL
 
     var body: some View {
         ZStack {
@@ -137,30 +136,19 @@ struct SmartWiFiView: View {
             .buttonStyle(.plain)
             .accessibilityLabel(advisor.isRunning ? L10n.text("action.cancel", language: language) : L10n.text("smart.action.optimize", language: language))
 
-            Button {
-                if let url = URL(string: UIApplication.openSettingsURLString) {
-                    openURL(url)
-                }
-            } label: {
-                Label(L10n.text("smart.action.settings", language: language), systemImage: "gearshape.fill")
-                    .font(.headline)
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 50)
-                    .background(.white.opacity(0.10), in: RoundedRectangle(cornerRadius: 8))
-                    .overlay {
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(.white.opacity(0.12), lineWidth: 1)
-                    }
+            Label {
+                Text(L10n.text("smart.system.note", language: language))
+                    .font(.caption)
+                    .foregroundStyle(.white.opacity(0.58))
+                    .fixedSize(horizontal: false, vertical: true)
+            } icon: {
+                Image(systemName: "info.circle.fill")
+                    .foregroundStyle(.cyan)
             }
-            .buttonStyle(.plain)
-            .accessibilityLabel(L10n.text("smart.action.settings", language: language))
-
-            Text(L10n.text("smart.system.note", language: language))
-                .font(.caption)
-                .foregroundStyle(.white.opacity(0.54))
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
+            .multilineTextAlignment(.leading)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(12)
+            .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 8))
         }
         .padding(16)
         .background {
