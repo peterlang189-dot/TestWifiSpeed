@@ -6,7 +6,7 @@ Test WiFi Speed is a SwiftUI iOS app for measuring network latency, jitter, down
 
 - Real HTTPS-based speed test using public endpoints
 - Latency, jitter, download, upload, and quality grade
-- Local-only recent test history
+- Local-only recent test history with an in-app clear action
 - English by default, with Simplified Chinese available in app settings
 - System, light, and dark appearance modes
 - Privacy screen and `PrivacyInfo.xcprivacy` declaring no tracking and no collected data

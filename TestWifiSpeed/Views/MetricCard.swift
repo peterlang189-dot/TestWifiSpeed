@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct MetricCard: View {
+    @Environment(\.colorScheme) private var colorScheme
     let title: String
     let value: String
     let unit: String
@@ -17,17 +18,17 @@ struct MetricCard: View {
             }
             Text(title)
                 .font(.subheadline)
-                .foregroundStyle(.white.opacity(0.62))
+                .foregroundStyle(.secondary)
             HStack(alignment: .lastTextBaseline, spacing: 5) {
                 Text(value)
                     .font(.system(size: 31, weight: .heavy, design: .rounded))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(.primary)
                     .monospacedDigit()
                     .lineLimit(1)
                     .minimumScaleFactor(0.58)
                 Text(unit)
                     .font(.caption.bold())
-                    .foregroundStyle(.white.opacity(0.48))
+                    .foregroundStyle(.secondary)
             }
         }
         .frame(maxWidth: .infinity, minHeight: 122, alignment: .leading)
@@ -35,8 +36,8 @@ struct MetricCard: View {
         .background(
             LinearGradient(
                 colors: [
-                    color.opacity(0.22),
-                    Color.white.opacity(0.06)
+                    color.opacity(colorScheme == .dark ? 0.22 : 0.14),
+                    colorScheme == .dark ? Color.white.opacity(0.06) : Color.white.opacity(0.76)
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -45,7 +46,7 @@ struct MetricCard: View {
         )
         .overlay {
             RoundedRectangle(cornerRadius: 8)
-                .stroke(.white.opacity(0.10), lineWidth: 1)
+                .stroke(AppTheme.border(for: colorScheme), lineWidth: 1)
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(title): \(value) \(unit)")

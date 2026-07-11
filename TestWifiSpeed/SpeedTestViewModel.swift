@@ -16,15 +16,21 @@ final class SpeedTestViewModel: ObservableObject {
 
     private let runner: SpeedTestRunner
     private let monitor: NetworkMonitor
+    private let userDefaults: UserDefaults
     private var task: Task<Void, Never>?
     private var activeRunID: UUID?
     private var cancellables = Set<AnyCancellable>()
 
     private static let historyKey = "SpeedTestHistory"
 
-    init(runner: SpeedTestRunner = SpeedTestRunner(), monitor: NetworkMonitor = NetworkMonitor()) {
+    init(
+        runner: SpeedTestRunner = SpeedTestRunner(),
+        monitor: NetworkMonitor = NetworkMonitor(),
+        userDefaults: UserDefaults = .standard
+    ) {
         self.runner = runner
         self.monitor = monitor
+        self.userDefaults = userDefaults
         loadHistory()
         observeNetwork()
     }
@@ -43,7 +49,7 @@ final class SpeedTestViewModel: ObservableObject {
     // MARK: - Persistence
 
     private func loadHistory() {
-        guard let data = UserDefaults.standard.data(forKey: Self.historyKey) else { return }
+        guard let data = userDefaults.data(forKey: Self.historyKey) else { return }
         do {
             history = try JSONDecoder().decode([SpeedTestResult].self, from: data)
         } catch {
@@ -54,7 +60,7 @@ final class SpeedTestViewModel: ObservableObject {
     private func saveHistory() {
         do {
             let data = try JSONEncoder().encode(history)
-            UserDefaults.standard.set(data, forKey: Self.historyKey)
+            userDefaults.set(data, forKey: Self.historyKey)
         } catch {
             // Non-critical: history will be saved on next successful test.
         }
@@ -106,6 +112,11 @@ final class SpeedTestViewModel: ObservableObject {
         task?.cancel()
         task = nil
         state = .idle
+    }
+
+    func clearHistory() {
+        history.removeAll()
+        userDefaults.removeObject(forKey: Self.historyKey)
     }
 
     // MARK: - Queries

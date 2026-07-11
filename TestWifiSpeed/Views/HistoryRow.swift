@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct HistoryRow: View {
+    @Environment(\.colorScheme) private var colorScheme
     let result: SpeedTestResult
     let language: AppLanguage
 
@@ -10,14 +11,14 @@ struct HistoryRow: View {
                 .font(.headline)
                 .foregroundStyle(.cyan)
                 .frame(width: 30, height: 30)
-                .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 8))
+                .background(AppTheme.subtleFill(for: colorScheme), in: RoundedRectangle(cornerRadius: 8))
             VStack(alignment: .leading, spacing: 4) {
                 Text(result.measuredAt, style: .time)
                     .font(.headline)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(.primary)
                 Text("\(L10n.text("metric.download", language: language)) \(result.downloadMbps.formatted(.number.precision(.fractionLength(1)))) \(L10n.text("unit.mbps", language: language))")
                     .font(.caption)
-                    .foregroundStyle(.white.opacity(0.58))
+                    .foregroundStyle(.secondary)
             }
             Spacer()
             Text(result.grade.title(language: language))
@@ -31,8 +32,8 @@ struct HistoryRow: View {
         .background(
             LinearGradient(
                 colors: [
-                    Color.white.opacity(0.12),
-                    Color.white.opacity(0.05)
+                    colorScheme == .dark ? Color.white.opacity(0.12) : Color.white.opacity(0.94),
+                    colorScheme == .dark ? Color.white.opacity(0.05) : Color.white.opacity(0.70)
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -41,7 +42,7 @@ struct HistoryRow: View {
         )
         .overlay {
             RoundedRectangle(cornerRadius: 8)
-                .stroke(.white.opacity(0.10), lineWidth: 1)
+                .stroke(AppTheme.border(for: colorScheme), lineWidth: 1)
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(result.grade.title(language: language)): \(result.downloadMbps.formatted(.number.precision(.fractionLength(1)))) \(L10n.text("unit.mbps", language: language))")

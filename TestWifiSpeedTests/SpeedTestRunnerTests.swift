@@ -95,6 +95,40 @@ final class SpeedTestRunnerTests: XCTestCase {
         XCTAssertEqual(AppLanguage.english.rawValue, "en")
         XCTAssertEqual(L10n.text("action.start", language: .english), "Start test")
     }
+
+    func testHistoryClearStringsAreLocalized() {
+        XCTAssertEqual(L10n.text("history.clear", language: .english), "Clear")
+        XCTAssertEqual(L10n.text("history.clear", language: .simplifiedChinese), "清除")
+        XCTAssertNotEqual(
+            L10n.text("history.clear.confirm.message", language: .english),
+            "history.clear.confirm.message"
+        )
+    }
+
+    @MainActor
+    func testViewModelClearsLoadedHistoryAndPersistentStorage() throws {
+        let suiteName = "SpeedTestRunnerTests.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let result = SpeedTestResult(
+            measuredAt: Date(),
+            latencyMs: 24,
+            jitterMs: 3,
+            downloadMbps: 120,
+            uploadMbps: 35,
+            grade: .excellent
+        )
+        defaults.set(try JSONEncoder().encode([result]), forKey: "SpeedTestHistory")
+
+        let viewModel = SpeedTestViewModel(userDefaults: defaults)
+        XCTAssertEqual(viewModel.history, [result])
+
+        viewModel.clearHistory()
+
+        XCTAssertTrue(viewModel.history.isEmpty)
+        XCTAssertNil(defaults.data(forKey: "SpeedTestHistory"))
+    }
 }
 
 private actor CancellationIgnoringClient: TransferClient {

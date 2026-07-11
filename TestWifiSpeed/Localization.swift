@@ -35,6 +35,43 @@ enum AppearanceMode: String, CaseIterable, Identifiable {
     }
 }
 
+enum AppTheme {
+    static func pageBackground(for colorScheme: ColorScheme) -> Color {
+        colorScheme == .dark
+            ? Color(red: 0.035, green: 0.045, blue: 0.07)
+            : Color(red: 0.94, green: 0.965, blue: 0.99)
+    }
+
+    static func panelBackground(for colorScheme: ColorScheme) -> LinearGradient {
+        LinearGradient(
+            colors: colorScheme == .dark
+                ? [Color.white.opacity(0.13), Color.white.opacity(0.055)]
+                : [Color.white.opacity(0.96), Color.white.opacity(0.72)],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+
+    static func border(for colorScheme: ColorScheme) -> Color {
+        colorScheme == .dark ? Color.white.opacity(0.12) : Color.black.opacity(0.10)
+    }
+
+    static func subtleFill(for colorScheme: ColorScheme) -> Color {
+        colorScheme == .dark ? Color.white.opacity(0.08) : Color.black.opacity(0.055)
+    }
+
+    static func gaugeTrack(for colorScheme: ColorScheme) -> Color {
+        colorScheme == .dark ? Color.white.opacity(0.10) : Color.black.opacity(0.10)
+    }
+
+    static func gaugeTick(isLit: Bool, colorScheme: ColorScheme) -> Color {
+        if colorScheme == .dark {
+            return Color.white.opacity(isLit ? 0.82 : 0.18)
+        }
+        return Color.black.opacity(isLit ? 0.70 : 0.16)
+    }
+}
+
 enum L10n {
     static func text(_ key: String, language: AppLanguage) -> String {
         strings[key]?[language] ?? strings[key]?[.english] ?? key
@@ -92,6 +129,13 @@ enum L10n {
         "unit.ms": [.english: "ms", .simplifiedChinese: "毫秒"],
         "history.title": [.english: "Recent tests", .simplifiedChinese: "最近测试"],
         "history.empty": [.english: "Run a test to build local history.", .simplifiedChinese: "运行一次测试后会显示本地历史。"],
+        "history.clear": [.english: "Clear", .simplifiedChinese: "清除"],
+        "history.clear.hint": [.english: "Deletes all locally stored speed test results.", .simplifiedChinese: "删除保存在本机的全部测速结果。"],
+        "history.clear.confirm.title": [.english: "Clear test history?", .simplifiedChinese: "清除测速历史？"],
+        "history.clear.confirm.message": [
+            .english: "This permanently deletes all speed test results stored on this device.",
+            .simplifiedChinese: "这会永久删除保存在本机的全部测速结果。"
+        ],
         "settings.title": [.english: "Settings", .simplifiedChinese: "设置"],
         "settings.language": [.english: "Language", .simplifiedChinese: "语言"],
         "settings.appearance": [.english: "Appearance", .simplifiedChinese: "外观"],

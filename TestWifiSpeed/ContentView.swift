@@ -2,10 +2,12 @@ import SwiftUI
 import UIKit
 
 struct ContentView: View {
+    @Environment(\.colorScheme) private var colorScheme
     @AppStorage("appLanguage") private var languageCode = AppLanguage.english.rawValue
     @AppStorage("appearanceMode") private var appearanceCode = AppearanceMode.system.rawValue
     @StateObject private var viewModel = SpeedTestViewModel()
     @State private var showingSettings = false
+    @State private var showingClearHistoryConfirmation = false
 
     private var language: AppLanguage {
         AppLanguage(rawValue: languageCode) ?? .english
@@ -32,7 +34,7 @@ struct ContentView: View {
             }
             .navigationTitle(L10n.text("app.title", language: language))
             .navigationBarTitleDisplayMode(.inline)
-            .toolbarColorScheme(.dark, for: .navigationBar)
+            .toolbarColorScheme(colorScheme, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
@@ -41,7 +43,7 @@ struct ContentView: View {
                         Image(systemName: "gearshape")
                             .font(.headline)
                     }
-                    .tint(.white)
+                    .tint(.primary)
                     .accessibilityLabel(L10n.text("action.settings", language: language))
                 }
             }
@@ -53,6 +55,18 @@ struct ContentView: View {
                 )
                 .presentationDetents([.medium, .large])
             }
+            .confirmationDialog(
+                L10n.text("history.clear.confirm.title", language: language),
+                isPresented: $showingClearHistoryConfirmation,
+                titleVisibility: .visible
+            ) {
+                Button(L10n.text("history.clear", language: language), role: .destructive) {
+                    viewModel.clearHistory()
+                }
+                Button(L10n.text("action.cancel", language: language), role: .cancel) {}
+            } message: {
+                Text(L10n.text("history.clear.confirm.message", language: language))
+            }
         }
     }
 
@@ -60,12 +74,12 @@ struct ContentView: View {
 
     private var background: some View {
         ZStack {
-            Color(red: 0.035, green: 0.045, blue: 0.07)
+            AppTheme.pageBackground(for: colorScheme)
 
             LinearGradient(
                 colors: [
-                    Color(red: 0.0, green: 0.64, blue: 0.78).opacity(0.30),
-                    Color(red: 0.56, green: 0.20, blue: 0.76).opacity(0.16),
+                    Color(red: 0.0, green: 0.64, blue: 0.78).opacity(colorScheme == .dark ? 0.30 : 0.15),
+                    Color(red: 0.56, green: 0.20, blue: 0.76).opacity(colorScheme == .dark ? 0.16 : 0.08),
                     Color.clear
                 ],
                 startPoint: .topLeading,
@@ -75,7 +89,7 @@ struct ContentView: View {
             LinearGradient(
                 colors: [
                     Color.clear,
-                    Color(red: 0.93, green: 0.45, blue: 0.18).opacity(0.10)
+                    Color(red: 0.93, green: 0.45, blue: 0.18).opacity(colorScheme == .dark ? 0.10 : 0.055)
                 ],
                 startPoint: .center,
                 endPoint: .bottomTrailing
@@ -94,7 +108,7 @@ struct ContentView: View {
                     .foregroundStyle(statusColor)
                 Text(L10n.text("app.title", language: language))
                     .font(.system(size: 34, weight: .heavy, design: .rounded))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(.primary)
                     .lineLimit(2)
                     .minimumScaleFactor(0.72)
             }
@@ -150,7 +164,7 @@ struct ContentView: View {
         .background(panelBackground, in: RoundedRectangle(cornerRadius: 8))
         .overlay {
             RoundedRectangle(cornerRadius: 8)
-                .stroke(.white.opacity(0.12), lineWidth: 1)
+                .stroke(AppTheme.border(for: colorScheme), lineWidth: 1)
         }
     }
 
@@ -223,10 +237,10 @@ struct ContentView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(L10n.text("smart.title", language: language))
                         .font(.headline)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(.primary)
                     Text(L10n.text("smart.entry.subtitle", language: language))
                         .font(.caption)
-                        .foregroundStyle(.white.opacity(0.62))
+                        .foregroundStyle(.secondary)
                         .lineLimit(2)
                 }
 
@@ -234,7 +248,7 @@ struct ContentView: View {
 
                 Image(systemName: "chevron.right")
                     .font(.subheadline.weight(.bold))
-                    .foregroundStyle(.white.opacity(0.54))
+                    .foregroundStyle(.secondary)
             }
             .padding(16)
             .background(
@@ -242,7 +256,7 @@ struct ContentView: View {
                     colors: [
                         Color.green.opacity(0.26),
                         Color.cyan.opacity(0.16),
-                        Color.white.opacity(0.055)
+                        colorScheme == .dark ? Color.white.opacity(0.055) : Color.white.opacity(0.72)
                     ],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
@@ -251,7 +265,7 @@ struct ContentView: View {
             )
             .overlay {
                 RoundedRectangle(cornerRadius: 8)
-                    .stroke(.white.opacity(0.12), lineWidth: 1)
+                    .stroke(AppTheme.border(for: colorScheme), lineWidth: 1)
             }
         }
         .buttonStyle(.plain)
@@ -263,13 +277,26 @@ struct ContentView: View {
 
     private var history: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(L10n.text("history.title", language: language))
-                .font(.title3.bold())
-                .foregroundStyle(.white)
+            HStack {
+                Text(L10n.text("history.title", language: language))
+                    .font(.title3.bold())
+                    .foregroundStyle(.primary)
+
+                Spacer()
+
+                if !viewModel.history.isEmpty {
+                    Button(L10n.text("history.clear", language: language)) {
+                        showingClearHistoryConfirmation = true
+                    }
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.red)
+                    .accessibilityHint(L10n.text("history.clear.hint", language: language))
+                }
+            }
 
             if viewModel.history.isEmpty {
                 Text(L10n.text("history.empty", language: language))
-                    .foregroundStyle(.white.opacity(0.62))
+                    .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding()
                     .background(panelBackground, in: RoundedRectangle(cornerRadius: 8))
@@ -320,14 +347,7 @@ struct ContentView: View {
     }
 
     private var panelBackground: LinearGradient {
-        LinearGradient(
-            colors: [
-                Color.white.opacity(0.13),
-                Color.white.opacity(0.055)
-            ],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
+        AppTheme.panelBackground(for: colorScheme)
     }
 }
 

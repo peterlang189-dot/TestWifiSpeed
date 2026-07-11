@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct SpeedometerView: View {
+    @Environment(\.colorScheme) private var colorScheme
     let value: String
     let unit: String
     let caption: String
@@ -17,7 +18,7 @@ struct SpeedometerView: View {
                     .frame(width: size * 0.92, height: size * 0.92)
 
                 GaugeArc(progress: 1)
-                    .stroke(.white.opacity(0.10), style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
+                    .stroke(AppTheme.gaugeTrack(for: colorScheme), style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
                     .frame(width: size * 0.82, height: size * 0.82)
 
                 GaugeArc(progress: progress)
@@ -35,15 +36,15 @@ struct SpeedometerView: View {
                     Text(value)
                         .font(.system(size: min(72, size * 0.23), weight: .black, design: .rounded))
                         .monospacedDigit()
-                        .foregroundStyle(.white)
+                        .foregroundStyle(.primary)
                         .lineLimit(1)
                         .minimumScaleFactor(0.5)
                     Text(unit)
                         .font(.headline.weight(.semibold))
-                        .foregroundStyle(.white.opacity(0.62))
+                        .foregroundStyle(.secondary)
                     Text(caption)
                         .font(.footnote.weight(.medium))
-                        .foregroundStyle(.white.opacity(0.72))
+                        .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
                         .lineLimit(2)
                         .minimumScaleFactor(0.78)
@@ -62,6 +63,7 @@ struct SpeedometerView: View {
 }
 
 struct GaugeTicks: View {
+    @Environment(\.colorScheme) private var colorScheme
     let progress: Double
     private let tickCount = 43
 
@@ -79,7 +81,7 @@ struct GaugeTicks: View {
                     let lit = fraction <= progress
 
                     Capsule()
-                        .fill(lit ? Color.white.opacity(0.82) : Color.white.opacity(0.18))
+                        .fill(AppTheme.gaugeTick(isLit: lit, colorScheme: colorScheme))
                         .frame(width: isMajor ? 3 : 2, height: isMajor ? 18 : 10)
                         .position(
                             x: center.x + cos(angle.radians) * radius,

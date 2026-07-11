@@ -3,6 +3,7 @@ import SwiftUI
 struct SmartWiFiView: View {
     let language: AppLanguage
 
+    @Environment(\.colorScheme) private var colorScheme
     @StateObject private var advisor = SmartWiFiAdvisor()
 
     var body: some View {
@@ -23,7 +24,7 @@ struct SmartWiFiView: View {
         }
         .navigationTitle(L10n.text("smart.title", language: language))
         .navigationBarTitleDisplayMode(.inline)
-        .toolbarColorScheme(.dark, for: .navigationBar)
+        .toolbarColorScheme(colorScheme, for: .navigationBar)
     }
 
     private var hero: some View {
@@ -33,12 +34,12 @@ struct SmartWiFiView: View {
                 .foregroundStyle(.cyan)
             Text(L10n.text("smart.hero.title", language: language))
                 .font(.system(size: 30, weight: .heavy, design: .rounded))
-                .foregroundStyle(.white)
+                .foregroundStyle(.primary)
                 .lineLimit(2)
                 .minimumScaleFactor(0.74)
             Text(L10n.text("smart.hero.body", language: language))
                 .font(.subheadline)
-                .foregroundStyle(.white.opacity(0.64))
+                .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -64,13 +65,13 @@ struct SmartWiFiView: View {
             VStack(spacing: 8) {
                 Text(advisor.statusText(language: language))
                     .font(.title3.weight(.heavy))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(.primary)
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
                     .minimumScaleFactor(0.75)
                 Text(display.detail)
                     .font(.subheadline)
-                    .foregroundStyle(.white.opacity(0.66))
+                    .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -88,7 +89,7 @@ struct SmartWiFiView: View {
         }
         .overlay {
             RoundedRectangle(cornerRadius: 8)
-                .stroke(.white.opacity(0.12), lineWidth: 1)
+                .stroke(AppTheme.border(for: colorScheme), lineWidth: 1)
         }
         .accessibilityElement(children: .contain)
         .accessibilityLabel(advisor.statusText(language: language))
@@ -106,11 +107,25 @@ struct SmartWiFiView: View {
                     color: .cyan
                 )
                 MetricCard(
+                    title: L10n.text("metric.upload", language: language),
+                    value: result.uploadMbps.formatted(.number.precision(.fractionLength(1))),
+                    unit: L10n.text("unit.mbps", language: language),
+                    icon: "arrow.up.circle.fill",
+                    color: .green
+                )
+                MetricCard(
                     title: L10n.text("metric.latency", language: language),
                     value: result.latencyMs.formatted(.number.precision(.fractionLength(0))),
                     unit: L10n.text("unit.ms", language: language),
                     icon: "timer",
                     color: .orange
+                )
+                MetricCard(
+                    title: L10n.text("metric.jitter", language: language),
+                    value: result.jitterMs.formatted(.number.precision(.fractionLength(0))),
+                    unit: L10n.text("unit.ms", language: language),
+                    icon: "waveform.path.ecg",
+                    color: .pink
                 )
             }
         }
@@ -139,7 +154,7 @@ struct SmartWiFiView: View {
             Label {
                 Text(L10n.text("smart.system.note", language: language))
                     .font(.caption)
-                    .foregroundStyle(.white.opacity(0.58))
+                    .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             } icon: {
                 Image(systemName: "info.circle.fill")
@@ -148,7 +163,7 @@ struct SmartWiFiView: View {
             .multilineTextAlignment(.leading)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(12)
-            .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 8))
+            .background(AppTheme.subtleFill(for: colorScheme), in: RoundedRectangle(cornerRadius: 8))
         }
         .padding(16)
         .background {
@@ -184,13 +199,15 @@ struct SmartWiFiView: View {
 // MARK: - Smart Wi-Fi Shared Backgrounds
 
 struct SmartWiFiBackground: View {
+    @Environment(\.colorScheme) private var colorScheme
+
     var body: some View {
         ZStack {
-            Color(red: 0.035, green: 0.045, blue: 0.07)
+            AppTheme.pageBackground(for: colorScheme)
             LinearGradient(
                 colors: [
-                    Color.green.opacity(0.24),
-                    Color.cyan.opacity(0.18),
+                    Color.green.opacity(colorScheme == .dark ? 0.24 : 0.13),
+                    Color.cyan.opacity(colorScheme == .dark ? 0.18 : 0.10),
                     Color.clear
                 ],
                 startPoint: .topLeading,
@@ -202,14 +219,9 @@ struct SmartWiFiBackground: View {
 }
 
 struct SmartPanelBackground: View {
+    @Environment(\.colorScheme) private var colorScheme
+
     var body: some View {
-        LinearGradient(
-            colors: [
-                Color.white.opacity(0.13),
-                Color.white.opacity(0.055)
-            ],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
+        AppTheme.panelBackground(for: colorScheme)
     }
 }
