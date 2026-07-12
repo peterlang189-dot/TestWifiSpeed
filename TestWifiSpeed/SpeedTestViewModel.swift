@@ -13,6 +13,7 @@ final class SpeedTestViewModel: ObservableObject {
     @Published private(set) var state: State = .idle
     @Published private(set) var history: [SpeedTestResult] = []
     @Published private(set) var isNetworkAvailable = true
+    @Published private(set) var connectionType: NetworkMonitor.ConnectionType = .unknown
 
     private let runner: SpeedTestRunner
     private let monitor: NetworkMonitor
@@ -42,6 +43,13 @@ final class SpeedTestViewModel: ObservableObject {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] connected in
                 self?.isNetworkAvailable = connected
+            }
+            .store(in: &cancellables)
+
+        monitor.$connectionType
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] connectionType in
+                self?.connectionType = connectionType
             }
             .store(in: &cancellables)
     }

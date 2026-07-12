@@ -29,10 +29,15 @@ struct SettingsView: View {
 
                 Section(L10n.text("privacy.title", language: language)) {
                     Text(L10n.text("privacy.body", language: language))
-                }
-
-                Section(L10n.text("review.title", language: language)) {
-                    Text(L10n.text("review.body", language: language))
+                    Link(destination: AppLinks.privacyPolicy) {
+                        Label(L10n.text("privacy.policy.link", language: language), systemImage: "hand.raised.fill")
+                    }
+                    Link(destination: AppLinks.cloudflarePrivacy) {
+                        Label(L10n.text("privacy.cloudflare.link", language: language), systemImage: "network")
+                    }
+                    Link(destination: AppLinks.support) {
+                        Label(L10n.text("support.link", language: language), systemImage: "questionmark.circle.fill")
+                    }
                 }
             }
             .navigationTitle(L10n.text("settings.title", language: language))

@@ -37,3 +37,23 @@ final class NetworkMonitor: ObservableObject {
         monitor.cancel()
     }
 }
+
+enum SpeedTestStartRequirement: Equatable {
+    case allowed
+    case disclosure
+    case cellularDisclosure
+    case offline
+}
+
+enum SpeedTestStartPolicy {
+    static func requirement(
+        isNetworkAvailable: Bool,
+        connectionType: NetworkMonitor.ConnectionType,
+        hasAcknowledgedDisclosure: Bool
+    ) -> SpeedTestStartRequirement {
+        guard isNetworkAvailable else { return .offline }
+        if connectionType == .cellular { return .cellularDisclosure }
+        if !hasAcknowledgedDisclosure { return .disclosure }
+        return .allowed
+    }
+}

@@ -105,6 +105,53 @@ final class SpeedTestRunnerTests: XCTestCase {
         )
     }
 
+    func testSpeedTestStartPolicyProtectsOfflineAndCellularUse() {
+        XCTAssertEqual(
+            SpeedTestStartPolicy.requirement(
+                isNetworkAvailable: false,
+                connectionType: .unknown,
+                hasAcknowledgedDisclosure: false
+            ),
+            .offline
+        )
+        XCTAssertEqual(
+            SpeedTestStartPolicy.requirement(
+                isNetworkAvailable: true,
+                connectionType: .cellular,
+                hasAcknowledgedDisclosure: true
+            ),
+            .cellularDisclosure
+        )
+        XCTAssertEqual(
+            SpeedTestStartPolicy.requirement(
+                isNetworkAvailable: true,
+                connectionType: .wifi,
+                hasAcknowledgedDisclosure: false
+            ),
+            .disclosure
+        )
+        XCTAssertEqual(
+            SpeedTestStartPolicy.requirement(
+                isNetworkAvailable: true,
+                connectionType: .wifi,
+                hasAcknowledgedDisclosure: true
+            ),
+            .allowed
+        )
+    }
+
+    func testPrivacyAndSupportLinksUsePublicHTTPSURLs() {
+        XCTAssertEqual(AppLinks.privacyPolicy.scheme, "https")
+        XCTAssertEqual(AppLinks.support.scheme, "https")
+        XCTAssertEqual(AppLinks.privacyPolicy.host, "github.com")
+        XCTAssertEqual(AppLinks.support.host, "github.com")
+    }
+
+    func testConnectionAdvisorCopyDoesNotPromiseAutomaticOptimization() {
+        XCTAssertEqual(L10n.text("smart.action.optimize", language: .english), "Analyze connection")
+        XCTAssertEqual(L10n.text("smart.action.optimize", language: .simplifiedChinese), "分析当前网络")
+    }
+
     @MainActor
     func testViewModelClearsLoadedHistoryAndPersistentStorage() throws {
         let suiteName = "SpeedTestRunnerTests.\(UUID().uuidString)"

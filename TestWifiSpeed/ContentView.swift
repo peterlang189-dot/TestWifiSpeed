@@ -5,9 +5,12 @@ struct ContentView: View {
     @Environment(\.colorScheme) private var colorScheme
     @AppStorage("appLanguage") private var languageCode = AppLanguage.english.rawValue
     @AppStorage("appearanceMode") private var appearanceCode = AppearanceMode.system.rawValue
+    @AppStorage("hasAcknowledgedSpeedTestDisclosure") private var hasAcknowledgedSpeedTestDisclosure = false
     @StateObject private var viewModel = SpeedTestViewModel()
     @State private var showingSettings = false
     @State private var showingClearHistoryConfirmation = false
+    @State private var showingSpeedTestDisclosure = false
+    @State private var pendingStartRequirement: SpeedTestStartRequirement = .disclosure
 
     private var language: AppLanguage {
         AppLanguage(rawValue: languageCode) ?? .english
@@ -66,6 +69,18 @@ struct ContentView: View {
                 Button(L10n.text("action.cancel", language: language), role: .cancel) {}
             } message: {
                 Text(L10n.text("history.clear.confirm.message", language: language))
+            }
+            .alert(
+                speedTestDisclosureTitle,
+                isPresented: $showingSpeedTestDisclosure
+            ) {
+                Button(L10n.text("speedtest.disclosure.continue", language: language)) {
+                    hasAcknowledgedSpeedTestDisclosure = true
+                    viewModel.start()
+                }
+                Button(L10n.text("action.cancel", language: language), role: .cancel) {}
+            } message: {
+                Text(speedTestDisclosureMessage)
             }
         }
     }
@@ -139,7 +154,7 @@ struct ContentView: View {
             .frame(height: 292)
 
             Button {
-                viewModel.isRunning ? viewModel.cancel() : viewModel.start()
+                viewModel.isRunning ? viewModel.cancel() : requestSpeedTestStart()
             } label: {
                 HStack(spacing: 10) {
                     Image(systemName: viewModel.isRunning ? "xmark" : "power")
@@ -158,6 +173,8 @@ struct ContentView: View {
                 }
             }
             .buttonStyle(.plain)
+            .disabled(!viewModel.isNetworkAvailable && !viewModel.isRunning)
+            .opacity(!viewModel.isNetworkAvailable && !viewModel.isRunning ? 0.55 : 1)
             .accessibilityLabel(viewModel.isRunning ? L10n.text("action.cancel", language: language) : L10n.text("action.start", language: language))
         }
         .padding(18)
@@ -174,6 +191,16 @@ struct ContentView: View {
     private var networkWarning: some View {
         if !viewModel.isNetworkAvailable {
             Label(L10n.text("network.offline", language: language), systemImage: "wifi.slash")
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(.orange)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(12)
+                .background(
+                    Color.orange.opacity(0.14),
+                    in: RoundedRectangle(cornerRadius: 8)
+                )
+        } else if viewModel.connectionType == .cellular {
+            Label(L10n.text("network.cellular.warning", language: language), systemImage: "antenna.radiowaves.left.and.right")
                 .font(.subheadline.weight(.medium))
                 .foregroundStyle(.orange)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -348,6 +375,38 @@ struct ContentView: View {
 
     private var panelBackground: LinearGradient {
         AppTheme.panelBackground(for: colorScheme)
+    }
+
+    private var speedTestDisclosureTitle: String {
+        let key = pendingStartRequirement == .cellularDisclosure
+            ? "speedtest.cellular.title"
+            : "speedtest.disclosure.title"
+        return L10n.text(key, language: language)
+    }
+
+    private var speedTestDisclosureMessage: String {
+        let key = pendingStartRequirement == .cellularDisclosure
+            ? "speedtest.cellular.message"
+            : "speedtest.disclosure.message"
+        return L10n.text(key, language: language)
+    }
+
+    private func requestSpeedTestStart() {
+        let requirement = SpeedTestStartPolicy.requirement(
+            isNetworkAvailable: viewModel.isNetworkAvailable,
+            connectionType: viewModel.connectionType,
+            hasAcknowledgedDisclosure: hasAcknowledgedSpeedTestDisclosure
+        )
+
+        switch requirement {
+        case .allowed:
+            viewModel.start()
+        case .disclosure, .cellularDisclosure:
+            pendingStartRequirement = requirement
+            showingSpeedTestDisclosure = true
+        case .offline:
+            break
+        }
     }
 }
 

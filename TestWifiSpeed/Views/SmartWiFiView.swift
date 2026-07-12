@@ -4,7 +4,11 @@ struct SmartWiFiView: View {
     let language: AppLanguage
 
     @Environment(\.colorScheme) private var colorScheme
+    @AppStorage("hasAcknowledgedSpeedTestDisclosure") private var hasAcknowledgedSpeedTestDisclosure = false
     @StateObject private var advisor = SmartWiFiAdvisor()
+    @StateObject private var networkMonitor = NetworkMonitor()
+    @State private var showingSpeedTestDisclosure = false
+    @State private var pendingStartRequirement: SpeedTestStartRequirement = .disclosure
 
     var body: some View {
         ZStack {
@@ -13,6 +17,7 @@ struct SmartWiFiView: View {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 18) {
                     hero
+                    networkNotice
                     recommendationPanel
                     metricsPanel
                     actionPanel
@@ -25,6 +30,18 @@ struct SmartWiFiView: View {
         .navigationTitle(L10n.text("smart.title", language: language))
         .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(colorScheme, for: .navigationBar)
+        .alert(
+            speedTestDisclosureTitle,
+            isPresented: $showingSpeedTestDisclosure
+        ) {
+            Button(L10n.text("speedtest.disclosure.continue", language: language)) {
+                hasAcknowledgedSpeedTestDisclosure = true
+                advisor.start()
+            }
+            Button(L10n.text("action.cancel", language: language), role: .cancel) {}
+        } message: {
+            Text(speedTestDisclosureMessage)
+        }
     }
 
     private var hero: some View {
@@ -96,6 +113,23 @@ struct SmartWiFiView: View {
     }
 
     @ViewBuilder
+    private var networkNotice: some View {
+        if !networkMonitor.isConnected {
+            Label(L10n.text("network.offline", language: language), systemImage: "wifi.slash")
+                .foregroundStyle(.orange)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(12)
+                .background(Color.orange.opacity(0.14), in: RoundedRectangle(cornerRadius: 8))
+        } else if networkMonitor.connectionType == .cellular {
+            Label(L10n.text("network.cellular.warning", language: language), systemImage: "antenna.radiowaves.left.and.right")
+                .foregroundStyle(.orange)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(12)
+                .background(Color.orange.opacity(0.14), in: RoundedRectangle(cornerRadius: 8))
+        }
+    }
+
+    @ViewBuilder
     private var metricsPanel: some View {
         if case .completed(let result, _) = advisor.state {
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 12)], spacing: 12) {
@@ -134,7 +168,7 @@ struct SmartWiFiView: View {
     private var actionPanel: some View {
         VStack(spacing: 12) {
             Button {
-                advisor.isRunning ? advisor.cancel() : advisor.start()
+                advisor.isRunning ? advisor.cancel() : requestSpeedTestStart()
             } label: {
                 HStack(spacing: 10) {
                     Image(systemName: advisor.isRunning ? "xmark" : "wand.and.stars")
@@ -149,6 +183,8 @@ struct SmartWiFiView: View {
                 .background(actionGradient, in: RoundedRectangle(cornerRadius: 8))
             }
             .buttonStyle(.plain)
+            .disabled(!networkMonitor.isConnected && !advisor.isRunning)
+            .opacity(!networkMonitor.isConnected && !advisor.isRunning ? 0.55 : 1)
             .accessibilityLabel(advisor.isRunning ? L10n.text("action.cancel", language: language) : L10n.text("smart.action.optimize", language: language))
 
             Label {
@@ -193,6 +229,38 @@ struct SmartWiFiView: View {
             startPoint: .leading,
             endPoint: .trailing
         )
+    }
+
+    private var speedTestDisclosureTitle: String {
+        let key = pendingStartRequirement == .cellularDisclosure
+            ? "speedtest.cellular.title"
+            : "speedtest.disclosure.title"
+        return L10n.text(key, language: language)
+    }
+
+    private var speedTestDisclosureMessage: String {
+        let key = pendingStartRequirement == .cellularDisclosure
+            ? "speedtest.cellular.message"
+            : "speedtest.disclosure.message"
+        return L10n.text(key, language: language)
+    }
+
+    private func requestSpeedTestStart() {
+        let requirement = SpeedTestStartPolicy.requirement(
+            isNetworkAvailable: networkMonitor.isConnected,
+            connectionType: networkMonitor.connectionType,
+            hasAcknowledgedDisclosure: hasAcknowledgedSpeedTestDisclosure
+        )
+
+        switch requirement {
+        case .allowed:
+            advisor.start()
+        case .disclosure, .cellularDisclosure:
+            pendingStartRequirement = requirement
+            showingSpeedTestDisclosure = true
+        case .offline:
+            break
+        }
     }
 }
 

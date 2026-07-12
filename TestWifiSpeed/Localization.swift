@@ -72,6 +72,12 @@ enum AppTheme {
     }
 }
 
+enum AppLinks {
+    static let privacyPolicy = URL(string: "https://github.com/peterlang189-dot/TestWifiSpeed/blob/main/PRIVACY.md")!
+    static let support = URL(string: "https://github.com/peterlang189-dot/TestWifiSpeed/blob/main/SUPPORT.md")!
+    static let cloudflarePrivacy = URL(string: "https://www.cloudflare.com/policies/privacy/")!
+}
+
 enum L10n {
     static func text(_ key: String, language: AppLanguage) -> String {
         strings[key]?[language] ?? strings[key]?[.english] ?? key
@@ -84,22 +90,22 @@ enum L10n {
         "action.cancel": [.english: "Cancel", .simplifiedChinese: "取消"],
         "action.settings": [.english: "Settings", .simplifiedChinese: "设置"],
         "action.done": [.english: "Done", .simplifiedChinese: "完成"],
-        "smart.title": [.english: "Smart Wi-Fi", .simplifiedChinese: "智能 Wi-Fi"],
-        "smart.entry.subtitle": [.english: "Find whether a faster, lower-latency Wi-Fi is worth choosing.", .simplifiedChinese: "自动评估是否应选择更快、延迟更低的 Wi-Fi。"],
-        "smart.badge": [.english: "Automatic recommendation", .simplifiedChinese: "自动优选建议"],
-        "smart.hero.title": [.english: "Choose the better connection", .simplifiedChinese: "选择更优网络连接"],
+        "smart.title": [.english: "Connection Advisor", .simplifiedChinese: "网络分析"],
+        "smart.entry.subtitle": [.english: "Analyze the active connection and get a clear quality recommendation.", .simplifiedChinese: "分析当前连接并获得清晰的网络质量建议。"],
+        "smart.badge": [.english: "Connection recommendation", .simplifiedChinese: "网络质量建议"],
+        "smart.hero.title": [.english: "Understand this connection", .simplifiedChinese: "了解当前网络连接"],
         "smart.hero.body": [
-            .english: "Run a focused speed and latency check. The app scores the current connection and tells you when switching Wi-Fi should improve the experience.",
-            .simplifiedChinese: "运行一次速度和延迟检测，App 会评估当前连接，并在切换 Wi-Fi 可能更流畅时给出建议。"
+            .english: "Run a focused speed and latency check. The app scores the active connection and explains whether trying another network may improve the experience.",
+            .simplifiedChinese: "运行速度和延迟检测，App 会评估当前连接，并说明尝试其他网络是否可能改善体验。"
         ],
-        "smart.ready": [.english: "Ready to optimize", .simplifiedChinese: "准备开始优选"],
-        "smart.scanning": [.english: "Checking Wi-Fi quality", .simplifiedChinese: "正在检测 Wi-Fi 质量"],
-        "smart.idle.detail": [.english: "Tap optimize to measure the active connection.", .simplifiedChinese: "点击开始优选，检测当前连接表现。"],
+        "smart.ready": [.english: "Ready to analyze", .simplifiedChinese: "准备开始分析"],
+        "smart.scanning": [.english: "Checking connection quality", .simplifiedChinese: "正在检测网络质量"],
+        "smart.idle.detail": [.english: "Tap analyze to measure the active connection.", .simplifiedChinese: "点击分析，检测当前连接表现。"],
         "smart.running.detail": [.english: "Measuring download speed, upload speed, latency, and jitter.", .simplifiedChinese: "正在检测下载、上传、延迟和抖动。"],
-        "smart.action.optimize": [.english: "Auto optimize Wi-Fi", .simplifiedChinese: "自动优选 Wi-Fi"],
+        "smart.action.optimize": [.english: "Analyze connection", .simplifiedChinese: "分析当前网络"],
         "smart.system.note": [
-            .english: "iOS requires changing Wi-Fi manually in the Settings app. This screen only recommends the best action and does not use private Wi-Fi scanning APIs.",
-            .simplifiedChinese: "iOS 要求用户在系统设置中手动更换 Wi-Fi。本页只提供优选建议，不使用私有扫网或静默切网 API。"
+            .english: "This screen analyzes only the active connection. It does not scan for, select, or switch Wi-Fi networks.",
+            .simplifiedChinese: "本页只分析当前连接，不会扫描、选择或切换 Wi-Fi 网络。"
         ],
         "smart.recommend.keep": [.english: "Current Wi-Fi is strong", .simplifiedChinese: "当前 Wi-Fi 表现良好"],
         "smart.recommend.switchSoon": [.english: "A better Wi-Fi may help", .simplifiedChinese: "可尝试切换更优 Wi-Fi"],
@@ -109,8 +115,8 @@ enum L10n {
             .simplifiedChinese: "当前速度和延迟表现较好，建议继续使用这个 Wi-Fi。"
         ],
         "smart.detail.switchSoon": [
-            .english: "This connection is usable, but a stronger nearby Wi-Fi may reduce buffering and lag.",
-            .simplifiedChinese: "当前连接可用，但切换到信号更强的 Wi-Fi 可能降低卡顿和延迟。"
+            .english: "This connection is usable, but trying another network may reduce buffering and lag.",
+            .simplifiedChinese: "当前连接可用，但尝试其他网络可能减少缓冲和卡顿。"
         ],
         "smart.detail.switchNow": [
             .english: "The current connection is slow or unstable. Choose a faster, lower-latency Wi-Fi in Settings.",
@@ -144,13 +150,22 @@ enum L10n {
         "appearance.dark": [.english: "Dark", .simplifiedChinese: "深色"],
         "privacy.title": [.english: "Privacy", .simplifiedChinese: "隐私"],
         "privacy.body": [
-            .english: "This app does not collect personal data, does not track you, and stores test history only on this device. Speed tests contact public HTTPS endpoints to measure transfer performance.",
-            .simplifiedChinese: "本 App 不收集个人数据、不跟踪用户，测速历史仅保存在本机。测速时会连接公开 HTTPS 端点以测量传输性能。"
+            .english: "Test history and preferences stay on this device. A speed test sends requests to Cloudflare, which receives your IP address, estimates city/country and network ASN, and may share anonymized measurements for Internet research. The app has no ads and does not track you.",
+            .simplifiedChinese: "测速历史和偏好设置仅保存在本机。测速请求会发送至 Cloudflare；Cloudflare 会接收 IP 地址、推断城市/国家和网络 ASN，并可能为互联网研究共享匿名测量数据。本 App 无广告且不跟踪用户。"
         ],
-        "review.title": [.english: "App Store readiness", .simplifiedChinese: "上架准备"],
-        "review.body": [
-            .english: "Uses public APIs, avoids restricted Wi-Fi identifiers, includes a privacy manifest, and presents a complete user-facing feature set.",
-            .simplifiedChinese: "使用公开 API，避免受限 Wi-Fi 标识符，包含隐私清单，并提供完整的用户功能。"
+        "privacy.policy.link": [.english: "Privacy Policy", .simplifiedChinese: "隐私政策"],
+        "privacy.cloudflare.link": [.english: "Cloudflare Privacy Policy", .simplifiedChinese: "Cloudflare 隐私政策"],
+        "support.link": [.english: "Support and Contact", .simplifiedChinese: "支持与联系"],
+        "speedtest.disclosure.title": [.english: "Before you start", .simplifiedChinese: "开始前须知"],
+        "speedtest.disclosure.message": [
+            .english: "A test uses about 29 MB of data. Requests go to Cloudflare, which receives your IP address and derives approximate location and network information. Continue only if you agree.",
+            .simplifiedChinese: "一次测试约使用 29 MB 流量。请求会发送至 Cloudflare，后者会接收 IP 地址并推断大致位置和网络信息。请在同意后继续。"
+        ],
+        "speedtest.disclosure.continue": [.english: "Agree and start", .simplifiedChinese: "同意并开始"],
+        "speedtest.cellular.title": [.english: "Using cellular data", .simplifiedChinese: "正在使用蜂窝数据"],
+        "speedtest.cellular.message": [
+            .english: "This will measure your cellular connection, not Wi-Fi, and use about 29 MB of cellular data. Cloudflare also receives the network information described in the Privacy Policy.",
+            .simplifiedChinese: "本次将测量蜂窝网络而非 Wi-Fi，并使用约 29 MB 蜂窝流量。Cloudflare 也会接收隐私政策中说明的网络信息。"
         ],
         "progress.latency": [.english: "Checking latency", .simplifiedChinese: "正在检测延迟"],
         "progress.download": [.english: "Measuring download speed", .simplifiedChinese: "正在测试下载速度"],
@@ -162,6 +177,7 @@ enum L10n {
         "grade.poor": [.english: "Poor", .simplifiedChinese: "较差"],
         "error.generic": [.english: "Please check your connection and try again.", .simplifiedChinese: "请检查网络连接后重试。"],
         "network.offline": [.english: "No network connection available.", .simplifiedChinese: "当前无网络连接。"],
+        "network.cellular.warning": [.english: "Cellular connection detected. A test measures cellular—not Wi-Fi—and may use about 29 MB.", .simplifiedChinese: "检测到蜂窝网络。测速将测量蜂窝网络而非 Wi-Fi，并可能使用约 29 MB 流量。"],
     ]
 }
 
