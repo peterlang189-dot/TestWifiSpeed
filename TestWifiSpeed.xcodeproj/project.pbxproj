@@ -25,6 +25,11 @@
 		100000000000000000000010 /* SmartWiFiView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000118 /* SmartWiFiView.swift */; };
 		100000000000000000000011 /* SmartWiFiAdvisor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000119 /* SmartWiFiAdvisor.swift */; };
 		100000000000000000000012 /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000011A /* NetworkMonitor.swift */; };
+		100000000000000000000013 /* BatteryHealthModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000011B /* BatteryHealthModels.swift */; };
+		100000000000000000000014 /* BatteryMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000011C /* BatteryMonitor.swift */; };
+		100000000000000000000015 /* BatteryHealthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000011D /* BatteryHealthViewModel.swift */; };
+		100000000000000000000016 /* BatteryHealthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000011E /* BatteryHealthView.swift */; };
+		100000000000000000000017 /* BatteryHealthTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000203 /* BatteryHealthTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -57,8 +62,13 @@
 		100000000000000000000118 /* SmartWiFiView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartWiFiView.swift; sourceTree = "<group>"; };
 		100000000000000000000119 /* SmartWiFiAdvisor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartWiFiAdvisor.swift; sourceTree = "<group>"; };
 		10000000000000000000011A /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
+		10000000000000000000011B /* BatteryHealthModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryHealthModels.swift; sourceTree = "<group>"; };
+		10000000000000000000011C /* BatteryMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryMonitor.swift; sourceTree = "<group>"; };
+		10000000000000000000011D /* BatteryHealthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryHealthViewModel.swift; sourceTree = "<group>"; };
+		10000000000000000000011E /* BatteryHealthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryHealthView.swift; sourceTree = "<group>"; };
 		100000000000000000000201 /* SpeedTestRunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeedTestRunnerTests.swift; sourceTree = "<group>"; };
 		100000000000000000000202 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		100000000000000000000203 /* BatteryHealthTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryHealthTests.swift; sourceTree = "<group>"; };
 		100000000000000000000601 /* TestWifiSpeed.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TestWifiSpeed.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		100000000000000000000602 /* TestWifiSpeedTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TestWifiSpeedTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -99,6 +109,7 @@
 				100000000000000000000104 /* SpeedTestModels.swift */,
 				100000000000000000000105 /* SpeedTestRunner.swift */,
 				100000000000000000000106 /* SpeedTestViewModel.swift */,
+				10000000000000000000011B /* BatteryHealthModels.swift */,
 				100000000000000000000804 /* Views */,
 				100000000000000000000805 /* Services */,
 				100000000000000000000107 /* Assets.xcassets */,
@@ -113,6 +124,7 @@
 			isa = PBXGroup;
 			children = (
 				100000000000000000000201 /* SpeedTestRunnerTests.swift */,
+				100000000000000000000203 /* BatteryHealthTests.swift */,
 				100000000000000000000202 /* Info.plist */,
 			);
 			path = TestWifiSpeedTests;
@@ -136,6 +148,7 @@
 				100000000000000000000116 /* HistoryRow.swift */,
 				100000000000000000000117 /* SettingsView.swift */,
 				100000000000000000000118 /* SmartWiFiView.swift */,
+				10000000000000000000011E /* BatteryHealthView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -145,6 +158,8 @@
 			children = (
 				100000000000000000000119 /* SmartWiFiAdvisor.swift */,
 				10000000000000000000011A /* NetworkMonitor.swift */,
+				10000000000000000000011C /* BatteryMonitor.swift */,
+				10000000000000000000011D /* BatteryHealthViewModel.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -264,6 +279,10 @@
 				100000000000000000000010 /* SmartWiFiView.swift in Sources */,
 				100000000000000000000011 /* SmartWiFiAdvisor.swift in Sources */,
 				100000000000000000000012 /* NetworkMonitor.swift in Sources */,
+				100000000000000000000013 /* BatteryHealthModels.swift in Sources */,
+				100000000000000000000014 /* BatteryMonitor.swift in Sources */,
+				100000000000000000000015 /* BatteryHealthViewModel.swift in Sources */,
+				100000000000000000000016 /* BatteryHealthView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -272,6 +291,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				10000000000000000000000A /* SpeedTestRunnerTests.swift in Sources */,
+				100000000000000000000017 /* BatteryHealthTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

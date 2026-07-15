@@ -6,7 +6,7 @@ Test WiFi Speed is a network measurement utility. It does not contain advertisin
 
 ## Data stored on your device
 
-The app stores your language and appearance preferences and up to eight recent speed-test results in Apple `UserDefaults`. This information remains on your device. You can delete the saved results with the **Clear** action in the app. Removing the app also removes its locally stored data.
+The app stores your language, appearance, healthy-charging preferences, and up to eight recent speed-test results in Apple `UserDefaults`. It reads battery level and charging state locally to provide charge-limit alerts. Battery information is not transmitted or retained as history. This information remains on your device. You can delete the saved speed-test results with the **Clear** action in the app. Removing the app also removes its locally stored data.
 
 ## Data processed during a speed test
 
@@ -47,7 +47,7 @@ Test WiFi Speed 是网络测量工具，不包含广告或分析 SDK，不建立
 
 ## 保存在设备上的数据
 
-App 使用 Apple `UserDefaults` 保存语言、外观偏好以及最多八条最近测速结果。这些信息仅保存在设备上。你可以使用 App 内的“清除”操作删除测速历史；卸载 App 也会删除本地数据。
+App 使用 Apple `UserDefaults` 保存语言、外观、健康充电偏好以及最多八条最近测速结果。App 会在本地读取电量与充电状态以提供充电上限提醒；电池信息不会传输，也不会作为历史记录保存。这些信息仅保存在设备上。你可以使用 App 内的“清除”操作删除测速历史；卸载 App 也会删除本地数据。
 
 ## 测速期间处理的数据
 
