@@ -90,6 +90,55 @@ enum L10n {
         "action.cancel": [.english: "Cancel", .simplifiedChinese: "取消"],
         "action.settings": [.english: "Settings", .simplifiedChinese: "设置"],
         "action.done": [.english: "Done", .simplifiedChinese: "完成"],
+        "battery.title": [.english: "Healthy Charging", .simplifiedChinese: "健康充电"],
+        "battery.entry.subtitle": [
+            .english: "Monitor charging and remind me at %d%%.",
+            .simplifiedChinese: "监测充电，并在达到 %d%% 时提醒断电。"
+        ],
+        "battery.current": [.english: "Current charge", .simplifiedChinese: "当前电量"],
+        "battery.unavailable": [.english: "Battery unavailable", .simplifiedChinese: "无法读取电量"],
+        "battery.state.unknown": [.english: "Battery status unavailable", .simplifiedChinese: "无法获取电池状态"],
+        "battery.state.unplugged": [.english: "Not charging", .simplifiedChinese: "未在充电"],
+        "battery.state.charging": [.english: "Charging", .simplifiedChinese: "正在充电"],
+        "battery.state.full": [.english: "Fully charged", .simplifiedChinese: "电量已充满"],
+        "battery.limit.toggle": [.english: "Charge-limit reminder", .simplifiedChinese: "充电上限提醒"],
+        "battery.limit.threshold": [.english: "Reminder level", .simplifiedChinese: "提醒电量"],
+        "battery.limit.reached.title": [.english: "Charge limit reached", .simplifiedChinese: "已达到充电上限"],
+        "battery.limit.reached.unplug": [
+            .english: "Battery is at %d%% (limit %d%%). iOS does not allow this app to stop charging, so unplug the charger now.",
+            .simplifiedChinese: "当前电量 %d%%（上限 %d%%）。iOS 不允许本 App 直接停止充电，请现在拔下充电器。"
+        ],
+        "battery.limit.reached.stopped": [
+            .english: "The simulator stopped charging at %d%% (limit %d%%).",
+            .simplifiedChinese: "仿真充电已在 %d%% 停止（上限 %d%%）。"
+        ],
+        "battery.platform.title": [.english: "iOS charging limitation", .simplifiedChinese: "iOS 充电控制限制"],
+        "battery.platform.reminderonly": [
+            .english: "Apple provides battery level and state monitoring, but no public API for third-party apps to cut charging power. This feature therefore alerts you at the limit instead of claiming to disconnect power.",
+            .simplifiedChinese: "Apple 提供电量和充电状态监测，但没有允许第三方 App 切断充电电源的公开 API。因此本功能会在达到上限时立即提醒，而不会虚假显示已物理断电。"
+        ],
+        "battery.platform.canstop": [
+            .english: "This control environment can stop simulated charging at the configured limit.",
+            .simplifiedChinese: "当前控制环境可在设定上限停止仿真充电。"
+        ],
+        "battery.monitoring.note": [
+            .english: "Monitoring works while the app is running. iOS may suspend apps in the background, so this is not a replacement for the system's Optimized Battery Charging feature.",
+            .simplifiedChinese: "监测在 App 运行期间有效；iOS 可能暂停后台 App，因此本功能不能替代系统的“优化电池充电”。"
+        ],
+        "battery.notification.enable": [.english: "Allow charge-limit alerts", .simplifiedChinese: "允许充电上限通知"],
+        "battery.notification.enabled": [.english: "Charge-limit alerts are allowed", .simplifiedChinese: "已允许充电上限通知"],
+        "battery.notification.denied": [.english: "Notifications are off; in-app alerts still work", .simplifiedChinese: "通知未开启；App 内提醒仍然有效"],
+        "battery.notification.title": [.english: "Time to unplug", .simplifiedChinese: "请停止充电"],
+        "battery.notification.body": [
+            .english: "Battery reached %d%% (your limit is %d%%). Unplug the charger to stop charging.",
+            .simplifiedChinese: "电量已达到 %d%%（设定上限 %d%%），请拔下充电器以停止充电。"
+        ],
+        "battery.simulation.title": [.english: "Charging simulation", .simplifiedChinese: "充电仿真"],
+        "battery.simulation.run": [.english: "Run simulation", .simplifiedChinese: "运行仿真"],
+        "battery.simulation.idle": [.english: "Ready", .simplifiedChinese: "准备就绪"],
+        "battery.simulation.charging": [.english: "Simulated charging", .simplifiedChinese: "仿真充电中"],
+        "battery.simulation.stopped": [.english: "Stopped exactly at %d%%", .simplifiedChinese: "已精确停在 %d%%"],
+        "battery.simulation.full": [.english: "Reached 100%", .simplifiedChinese: "已充至 100%"],
         "smart.title": [.english: "Connection Advisor", .simplifiedChinese: "网络分析"],
         "smart.entry.subtitle": [.english: "Analyze the active connection and get a clear quality recommendation.", .simplifiedChinese: "分析当前连接并获得清晰的网络质量建议。"],
         "smart.badge": [.english: "Connection recommendation", .simplifiedChinese: "网络质量建议"],

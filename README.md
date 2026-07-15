@@ -6,6 +6,8 @@ Test WiFi Speed is a SwiftUI iOS app for measuring network latency, jitter, down
 
 - Real HTTPS-based speed test using public endpoints
 - Latency, jitter, download, upload, and quality grade
+- Healthy-charging monitor with a configurable 50–100% reminder threshold (90% by default)
+- Debug simulator that verifies a modeled charger stops exactly at the configured limit
 - Local-only recent test history with an in-app clear action
 - English by default, with Simplified Chinese available in app settings
 - System, light, and dark appearance modes
@@ -17,6 +19,7 @@ Test WiFi Speed is a SwiftUI iOS app for measuring network latency, jitter, down
 ## App Store readiness notes
 
 - Uses public Apple APIs only.
+- Reads battery level and charging state locally with public `UIDevice` APIs. iOS does not provide third-party apps a public API to physically stop charging, so real devices receive an in-app/local notification to unplug at the configured limit. The app does not claim that power was disconnected.
 - Does not request location, Wi-Fi SSID, Bluetooth, contacts, photos, or other sensitive permissions.
 - Avoids restricted Wi-Fi identifiers so the app can be reviewed as a network-quality tool without special entitlements.
 - Includes an in-app disclosure, [privacy policy](PRIVACY.md), [support page](SUPPORT.md), and privacy manifest.

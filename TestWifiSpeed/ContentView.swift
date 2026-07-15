@@ -3,6 +3,7 @@ import UIKit
 
 struct ContentView: View {
     @Environment(\.colorScheme) private var colorScheme
+    @EnvironmentObject private var batteryHealthViewModel: BatteryHealthViewModel
     @AppStorage("appLanguage") private var languageCode = AppLanguage.english.rawValue
     @AppStorage("appearanceMode") private var appearanceCode = AppearanceMode.system.rawValue
     @AppStorage("hasAcknowledgedSpeedTestDisclosure") private var hasAcknowledgedSpeedTestDisclosure = false
@@ -26,6 +27,7 @@ struct ContentView: View {
                         header
                         speedometerPanel
                         networkWarning
+                        batteryHealthEntry
                         smartWiFiEntry
                         metricGrid
                         history
@@ -81,6 +83,15 @@ struct ContentView: View {
                 Button(L10n.text("action.cancel", language: language), role: .cancel) {}
             } message: {
                 Text(speedTestDisclosureMessage)
+            }
+            .alert(item: $batteryHealthViewModel.latestLimitEvent) { event in
+                Alert(
+                    title: Text(L10n.text("battery.limit.reached.title", language: language)),
+                    message: Text(batteryLimitReachedMessage(for: event)),
+                    dismissButton: .default(Text(L10n.text("action.done", language: language))) {
+                        batteryHealthViewModel.dismissLatestEvent()
+                    }
+                )
             }
         }
     }
@@ -250,6 +261,75 @@ struct ContentView: View {
 
     // MARK: - Smart Wi-Fi Entry
 
+    private var batteryHealthEntry: some View {
+        NavigationLink {
+            BatteryHealthView(language: language)
+        } label: {
+            HStack(spacing: 14) {
+                Image(systemName: "battery.100percent.bolt")
+                    .font(.title3)
+                    .foregroundStyle(.black)
+                    .frame(width: 42, height: 42)
+                    .background(.white, in: RoundedRectangle(cornerRadius: 8))
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(L10n.text("battery.title", language: language))
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+                    Text(
+                        String(
+                            format: L10n.text("battery.entry.subtitle", language: language),
+                            batteryHealthViewModel.threshold
+                        )
+                    )
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+                }
+
+                Spacer()
+
+                if let level = batteryHealthViewModel.snapshot.level {
+                    Text("\(level)%")
+                        .font(.subheadline.bold())
+                        .monospacedDigit()
+                        .foregroundStyle(.green)
+                }
+
+                Image(systemName: "chevron.right")
+                    .font(.subheadline.weight(.bold))
+                    .foregroundStyle(.secondary)
+            }
+            .padding(16)
+            .background(
+                LinearGradient(
+                    colors: [
+                        Color.green.opacity(0.24),
+                        Color.mint.opacity(0.14),
+                        colorScheme == .dark ? Color.white.opacity(0.055) : Color.white.opacity(0.72)
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                ),
+                in: RoundedRectangle(cornerRadius: 8)
+            )
+            .overlay {
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(AppTheme.border(for: colorScheme), lineWidth: 1)
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(L10n.text("battery.title", language: language))
+        .accessibilityHint(
+            String(
+                format: L10n.text("battery.entry.subtitle", language: language),
+                batteryHealthViewModel.threshold
+            )
+        )
+    }
+
+    // MARK: - Smart Wi-Fi Entry
+
     private var smartWiFiEntry: some View {
         NavigationLink {
             SmartWiFiView(language: language)
@@ -408,10 +488,22 @@ struct ContentView: View {
             break
         }
     }
+
+    private func batteryLimitReachedMessage(for event: BatteryLimitEvent) -> String {
+        let key = event.chargingWasStopped
+            ? "battery.limit.reached.stopped"
+            : "battery.limit.reached.unplug"
+        return String(
+            format: L10n.text(key, language: language),
+            event.level,
+            event.threshold
+        )
+    }
 }
 
 #if DEBUG
 #Preview {
     ContentView()
+        .environmentObject(BatteryHealthViewModel())
 }
 #endif
