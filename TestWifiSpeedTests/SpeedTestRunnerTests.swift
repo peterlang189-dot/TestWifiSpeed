@@ -176,6 +176,80 @@ final class SpeedTestRunnerTests: XCTestCase {
         XCTAssertTrue(viewModel.history.isEmpty)
         XCTAssertNil(defaults.data(forKey: "SpeedTestHistory"))
     }
+
+    func testRunnerReportsIncrementalProgressDuringTransfers() async throws {
+        let configuration = SpeedTestConfiguration(
+            latencyURL: URL(string: "https://example.com/latency")!,
+            downloadURL: URL(string: "https://example.com/download")!,
+            uploadURL: URL(string: "https://example.com/upload")!,
+            latencySampleCount: 1,
+            uploadBytes: 4_000_000
+        )
+        let runner = SpeedTestRunner(configuration: configuration, client: SlowMockTransferClient())
+        var progressEvents: [SpeedTestProgress] = []
+
+        _ = try await runner.run { progress in
+            progressEvents.append(progress)
+        }
+
+        let downloadFractions = progressEvents.filter { $0.stage == .download }.map(\.fraction)
+        XCTAssertGreaterThan(
+            downloadFractions.count, 1,
+            "A slow download should emit more than the initial progress event"
+        )
+        XCTAssertTrue(
+            downloadFractions.contains(where: { $0 > 0.45 }),
+            "Progress should advance past the initial download fraction"
+        )
+        XCTAssertEqual(progressEvents.last?.stage, .complete)
+    }
+
+    @MainActor
+    func testRunGateBlocksSecondConcurrentSpeedTest() async throws {
+        let gate = SpeedTestRunGate()
+        let suiteName = "SpeedTestRunnerTests.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        func makeViewModel() -> SpeedTestViewModel {
+            let client = MockTransferClient(measurements: [
+                TransferMeasurement(bytes: 12, duration: 0.020),
+                TransferMeasurement(bytes: 12, duration: 0.020),
+                TransferMeasurement(bytes: 12, duration: 0.020),
+                TransferMeasurement(bytes: 12, duration: 0.020),
+                TransferMeasurement(bytes: 12, duration: 0.020),
+                TransferMeasurement(bytes: 10_000_000, duration: 1.0),
+                TransferMeasurement(bytes: 4_000_000, duration: 1.0)
+            ])
+            return SpeedTestViewModel(
+                runner: SpeedTestRunner(client: client),
+                userDefaults: defaults,
+                runGate: gate
+            )
+        }
+
+        let first = makeViewModel()
+        let second = makeViewModel()
+
+        first.start()
+        second.start()
+
+        if case .failed(let message) = second.state {
+            XCTAssertEqual(message, SpeedTestError.busy.localizedDescription)
+        } else {
+            XCTFail("Second test should be rejected while the first is running, got \(second.state)")
+        }
+
+        try await Task.sleep(nanoseconds: 300_000_000)
+        guard case .completed = first.state else {
+            XCTFail("First test should have completed, got \(first.state)")
+            return
+        }
+
+        second.start()
+        XCTAssertTrue(second.isRunning, "The gate should be free once the first test completes")
+        second.cancel()
+    }
 }
 
 private actor CancellationIgnoringClient: TransferClient {
@@ -203,5 +277,13 @@ private actor MockTransferClient: TransferClient {
             throw SpeedTestError.noSamples
         }
         return measurements.removeFirst()
+    }
+}
+
+private actor SlowMockTransferClient: TransferClient {
+    func perform(_ request: URLRequest, expectedUploadBytes: Int?) async throws -> TransferMeasurement {
+        try? await Task.sleep(nanoseconds: 700_000_000)
+        try Task.checkCancellation()
+        return TransferMeasurement(bytes: expectedUploadBytes ?? 10_000_000, duration: 0.7)
     }
 }

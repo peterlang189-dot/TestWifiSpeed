@@ -62,6 +62,12 @@ final class BatteryHealthViewModel: ObservableObject {
             )
         }
 
+        // The limit reminder is on by default; without authorization the
+        // system silently drops the notification, so ask up front.
+        if isEnabled {
+            requestNotificationPermission()
+        }
+
         monitor.start { [weak self] snapshot in
             Task { @MainActor [weak self] in
                 self?.receive(snapshot)

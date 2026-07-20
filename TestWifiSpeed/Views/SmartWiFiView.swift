@@ -5,10 +5,15 @@ struct SmartWiFiView: View {
 
     @Environment(\.colorScheme) private var colorScheme
     @AppStorage("hasAcknowledgedSpeedTestDisclosure") private var hasAcknowledgedSpeedTestDisclosure = false
-    @StateObject private var advisor = SmartWiFiAdvisor()
+    @StateObject private var advisor: SmartWiFiAdvisor
     @StateObject private var networkMonitor = NetworkMonitor()
     @State private var showingSpeedTestDisclosure = false
     @State private var pendingStartRequirement: SpeedTestStartRequirement = .disclosure
+
+    init(language: AppLanguage, runGate: SpeedTestRunGate) {
+        self.language = language
+        _advisor = StateObject(wrappedValue: SmartWiFiAdvisor(runGate: runGate))
+    }
 
     var body: some View {
         ZStack {

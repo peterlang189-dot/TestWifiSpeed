@@ -7,11 +7,18 @@ struct ContentView: View {
     @AppStorage("appLanguage") private var languageCode = AppLanguage.english.rawValue
     @AppStorage("appearanceMode") private var appearanceCode = AppearanceMode.system.rawValue
     @AppStorage("hasAcknowledgedSpeedTestDisclosure") private var hasAcknowledgedSpeedTestDisclosure = false
-    @StateObject private var viewModel = SpeedTestViewModel()
+    @StateObject private var viewModel: SpeedTestViewModel
     @State private var showingSettings = false
     @State private var showingClearHistoryConfirmation = false
     @State private var showingSpeedTestDisclosure = false
     @State private var pendingStartRequirement: SpeedTestStartRequirement = .disclosure
+
+    private let runGate: SpeedTestRunGate
+
+    init(runGate: SpeedTestRunGate) {
+        self.runGate = runGate
+        _viewModel = StateObject(wrappedValue: SpeedTestViewModel(runGate: runGate))
+    }
 
     private var language: AppLanguage {
         AppLanguage(rawValue: languageCode) ?? .english
@@ -92,6 +99,12 @@ struct ContentView: View {
                         batteryHealthViewModel.dismissLatestEvent()
                     }
                 )
+            }
+            .onAppear {
+                batteryHealthViewModel.updateLanguage(language)
+            }
+            .onChange(of: languageCode) { _, _ in
+                batteryHealthViewModel.updateLanguage(language)
             }
         }
     }
@@ -332,7 +345,7 @@ struct ContentView: View {
 
     private var smartWiFiEntry: some View {
         NavigationLink {
-            SmartWiFiView(language: language)
+            SmartWiFiView(language: language, runGate: runGate)
         } label: {
             HStack(spacing: 14) {
                 Image(systemName: "sparkles")
@@ -503,7 +516,7 @@ struct ContentView: View {
 
 #if DEBUG
 #Preview {
-    ContentView()
+    ContentView(runGate: SpeedTestRunGate())
         .environmentObject(BatteryHealthViewModel())
 }
 #endif

@@ -220,6 +220,42 @@ final class BatteryHealthTests: XCTestCase {
         )
     }
 
+    @MainActor
+    func testViewModelRequestsNotificationPermissionOnLaunchWhenEnabled() {
+        let notifier = MockBatteryNotifier()
+        let defaults = isolatedDefaults()
+        defer { defaults.removePersistentDomain(forName: defaultsSuiteName(defaults)) }
+
+        _ = BatteryHealthViewModel(
+            monitor: MockBatteryMonitor(),
+            chargeController: MockChargeController(canStopCharging: false),
+            notifier: notifier,
+            userDefaults: defaults
+        )
+
+        XCTAssertEqual(
+            notifier.authorizationRequestCount, 1,
+            "Enabled-by-default limit reminders must request authorization up front; otherwise the system silently drops the notification"
+        )
+    }
+
+    @MainActor
+    func testViewModelSkipsPermissionRequestWhenLimitDisabled() {
+        let notifier = MockBatteryNotifier()
+        let defaults = isolatedDefaults()
+        defer { defaults.removePersistentDomain(forName: defaultsSuiteName(defaults)) }
+        defaults.set(false, forKey: BatteryHealthViewModel.enabledKey)
+
+        _ = BatteryHealthViewModel(
+            monitor: MockBatteryMonitor(),
+            chargeController: MockChargeController(canStopCharging: false),
+            notifier: notifier,
+            userDefaults: defaults
+        )
+
+        XCTAssertEqual(notifier.authorizationRequestCount, 0)
+    }
+
     private func isolatedDefaults() -> UserDefaults {
         let name = "BatteryHealthTests.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: name)!
