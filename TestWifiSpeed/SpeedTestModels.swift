@@ -30,6 +30,31 @@ enum SpeedTestThreshold {
     static let smartSwitchLatency: Double = 120
 }
 
+// MARK: - Run Coordination
+
+/// Coordinates speed tests across screens so only one measurement runs at a
+/// time. Concurrent tests would compete for bandwidth and skew both results.
+@MainActor
+final class SpeedTestRunGate {
+    private(set) var activeRunID: UUID?
+
+    /// All state is mutated only through the main-actor-isolated methods, so
+    /// construction is safe from any isolation context (e.g. default
+    /// arguments and view initializers).
+    nonisolated init() {}
+
+    func acquire(runID: UUID) -> Bool {
+        guard activeRunID == nil else { return false }
+        activeRunID = runID
+        return true
+    }
+
+    func release(runID: UUID) {
+        guard activeRunID == runID else { return }
+        activeRunID = nil
+    }
+}
+
 // MARK: - Stage & Grade
 
 enum SpeedTestStage: String, CaseIterable, Identifiable {

@@ -81,11 +81,16 @@ final class SmartWiFiAdvisor: ObservableObject {
     @Published private(set) var state: State = .idle
 
     private let runner: SpeedTestRunner
+    private let runGate: SpeedTestRunGate
     private var task: Task<Void, Never>?
     private var activeRunID: UUID?
 
-    init(runner: SpeedTestRunner = SpeedTestRunner()) {
+    init(
+        runner: SpeedTestRunner = SpeedTestRunner(),
+        runGate: SpeedTestRunGate = SpeedTestRunGate()
+    ) {
         self.runner = runner
+        self.runGate = runGate
     }
 
     var isRunning: Bool {
@@ -96,6 +101,10 @@ final class SmartWiFiAdvisor: ObservableObject {
     func start() {
         guard !isRunning else { return }
         let runID = UUID()
+        guard runGate.acquire(runID: runID) else {
+            state = .failed(SpeedTestError.busy.localizedDescription)
+            return
+        }
         activeRunID = runID
         state = .running(nil)
 
@@ -108,27 +117,33 @@ final class SmartWiFiAdvisor: ObservableObject {
                 try Task.checkCancellation()
                 guard activeRunID == runID else { return }
                 state = .completed(result, SmartWiFiRecommendation(result: result))
-                activeRunID = nil
-                task = nil
+                finish(runID: runID)
             } catch is CancellationError {
                 guard activeRunID == runID else { return }
                 state = .idle
-                activeRunID = nil
-                task = nil
+                finish(runID: runID)
             } catch {
                 guard activeRunID == runID else { return }
                 state = .failed(error.localizedDescription)
-                activeRunID = nil
-                task = nil
+                finish(runID: runID)
             }
         }
     }
 
     func cancel() {
+        if let runID = activeRunID {
+            runGate.release(runID: runID)
+        }
         activeRunID = nil
         task?.cancel()
         task = nil
         state = .idle
+    }
+
+    private func finish(runID: UUID) {
+        runGate.release(runID: runID)
+        activeRunID = nil
+        task = nil
     }
 
     func progressValue() -> Double {

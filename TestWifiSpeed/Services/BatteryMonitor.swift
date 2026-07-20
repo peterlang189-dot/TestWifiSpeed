@@ -60,6 +60,7 @@ final class DeviceBatteryMonitor: BatteryMonitoring {
         observers.forEach(notificationCenter.removeObserver)
         observers.removeAll()
         onChange = nil
+        device.isBatteryMonitoringEnabled = false
     }
 
     deinit {

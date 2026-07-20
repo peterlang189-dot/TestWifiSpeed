@@ -26,6 +26,7 @@ enum SpeedTestError: LocalizedError, Equatable {
     case badStatusCode(Int)
     case invalidConfiguration
     case noSamples
+    case busy
 
     var errorDescription: String? {
         switch self {
@@ -35,6 +36,8 @@ enum SpeedTestError: LocalizedError, Equatable {
             return "Speed test configuration is invalid."
         case .noSamples:
             return "Unable to collect network samples."
+        case .busy:
+            return "Another speed test is already running."
         }
     }
 }
@@ -84,7 +87,15 @@ struct SpeedTestRunner {
         downloadRequest.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
         downloadRequest.timeoutInterval = 30
         downloadRequest.httpMethod = "GET"
-        let download = try await client.perform(downloadRequest, expectedUploadBytes: nil)
+        let download = try await performTransferWithProgress(
+            request: downloadRequest,
+            expectedUploadBytes: nil,
+            stage: .download,
+            messageKey: "progress.download",
+            startFraction: 0.45,
+            endFraction: 0.70,
+            progress: progress
+        )
         try Task.checkCancellation()
 
         try Task.checkCancellation()
@@ -95,7 +106,15 @@ struct SpeedTestRunner {
         uploadRequest.httpMethod = "POST"
         uploadRequest.setValue("application/octet-stream", forHTTPHeaderField: "Content-Type")
         uploadRequest.httpBody = Data(repeating: 0x5A, count: configuration.uploadBytes)
-        let upload = try await client.perform(uploadRequest, expectedUploadBytes: configuration.uploadBytes)
+        let upload = try await performTransferWithProgress(
+            request: uploadRequest,
+            expectedUploadBytes: configuration.uploadBytes,
+            stage: .upload,
+            messageKey: "progress.upload",
+            startFraction: 0.75,
+            endFraction: 0.95,
+            progress: progress
+        )
         try Task.checkCancellation()
 
         let latency = SpeedMath.average(latencySamples)
@@ -118,5 +137,37 @@ struct SpeedTestRunner {
             uploadMbps: uploadMbps,
             grade: grade
         )
+    }
+
+    /// Runs a single transfer while a ticker creeps the reported fraction from
+    /// `startFraction` toward `endFraction`, so the UI keeps moving during
+    /// long transfers instead of appearing stuck.
+    private func performTransferWithProgress(
+        request: URLRequest,
+        expectedUploadBytes: Int?,
+        stage: SpeedTestStage,
+        messageKey: String,
+        startFraction: Double,
+        endFraction: Double,
+        progress: @escaping @MainActor (SpeedTestProgress) -> Void
+    ) async throws -> TransferMeasurement {
+        let ticker = Task {
+            var fraction = startFraction
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 250_000_000)
+                guard !Task.isCancelled else { return }
+                fraction += (endFraction - fraction) * 0.08
+                await progress(SpeedTestProgress(stage: stage, fraction: fraction, messageKey: messageKey))
+            }
+        }
+
+        do {
+            let measurement = try await client.perform(request, expectedUploadBytes: expectedUploadBytes)
+            ticker.cancel()
+            return measurement
+        } catch {
+            ticker.cancel()
+            throw error
+        }
     }
 }

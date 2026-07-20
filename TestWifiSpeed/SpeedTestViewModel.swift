@@ -18,6 +18,7 @@ final class SpeedTestViewModel: ObservableObject {
     private let runner: SpeedTestRunner
     private let monitor: NetworkMonitor
     private let userDefaults: UserDefaults
+    private let runGate: SpeedTestRunGate
     private var task: Task<Void, Never>?
     private var activeRunID: UUID?
     private var cancellables = Set<AnyCancellable>()
@@ -27,11 +28,13 @@ final class SpeedTestViewModel: ObservableObject {
     init(
         runner: SpeedTestRunner = SpeedTestRunner(),
         monitor: NetworkMonitor = NetworkMonitor(),
-        userDefaults: UserDefaults = .standard
+        userDefaults: UserDefaults = .standard,
+        runGate: SpeedTestRunGate = SpeedTestRunGate()
     ) {
         self.runner = runner
         self.monitor = monitor
         self.userDefaults = userDefaults
+        self.runGate = runGate
         loadHistory()
         observeNetwork()
     }
@@ -84,6 +87,10 @@ final class SpeedTestViewModel: ObservableObject {
     func start() {
         guard !isRunning else { return }
         let runID = UUID()
+        guard runGate.acquire(runID: runID) else {
+            state = .failed(SpeedTestError.busy.localizedDescription)
+            return
+        }
         activeRunID = runID
         state = .running(SpeedTestProgress(stage: .latency, fraction: 0.05, messageKey: "progress.latency"))
 
@@ -99,27 +106,33 @@ final class SpeedTestViewModel: ObservableObject {
                 history = Array(history.prefix(SpeedTestThreshold.maxHistoryCount))
                 saveHistory()
                 state = .completed(result)
-                activeRunID = nil
-                task = nil
+                finish(runID: runID)
             } catch is CancellationError {
                 guard activeRunID == runID else { return }
                 state = .idle
-                activeRunID = nil
-                task = nil
+                finish(runID: runID)
             } catch {
                 guard activeRunID == runID else { return }
                 state = .failed(error.localizedDescription)
-                activeRunID = nil
-                task = nil
+                finish(runID: runID)
             }
         }
     }
 
     func cancel() {
+        if let runID = activeRunID {
+            runGate.release(runID: runID)
+        }
         activeRunID = nil
         task?.cancel()
         task = nil
         state = .idle
+    }
+
+    private func finish(runID: UUID) {
+        runGate.release(runID: runID)
+        activeRunID = nil
+        task = nil
     }
 
     func clearHistory() {
